@@ -47,6 +47,7 @@ function LoginBox(props) {
                 <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 <button onClick={handleEmailLogin}>เข้าสู่ระบบ</button>
                 <button onClick={handleEmailRegister}>สมัครสมาชิก</button>
+                <br></br><Button onClick={() => app.google_login()}>Google Login</Button>
             </div>
         );
     } else {
