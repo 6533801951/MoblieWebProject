@@ -12,227 +12,182 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-function LoginBox(props) {
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const u = props.user;
-    const app = props.app;
-
-    const handleEmailLogin = () => {
-        firebase.auth().signInWithEmailAndPassword(email, password)
-            .then(userCredential => {
-                alert("เข้าสู่ระบบสำเร็จ");
-            })
-            .catch(error => alert("เกิดข้อผิดพลาด: " + error.message));
-    };
-
-    const handleEmailRegister = () => {
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then(userCredential => {
-                const user = userCredential.user;
-                db.collection("users").doc(user.uid).set({
-                    email: user.email,
-                    role: email.startsWith("t") ? "T01" : "S01" // แยกระหว่างนักเรียนและอาจารย์
-                });
-                alert("สมัครสมาชิกสำเร็จ");
-            })
-            .catch(error => alert("เกิดข้อผิดพลาด: " + error.message));
-    };
-
-    if (!u) {
-        return (
-            <div>
-                <h4>เข้าสู่ระบบ</h4>
-                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button onClick={handleEmailLogin}>เข้าสู่ระบบ</button>
-                <button onClick={handleEmailRegister}>สมัครสมาชิก</button>
-                <br></br><Button onClick={() => app.google_login()}>Google Login</Button>
-            </div>
-        );
-    } else {
-        return (
-            <div>
-                <img src={u.photoURL} alt="Profile" />
-                {u.email} <button onClick={() => app.google_logout()}>Logout</button>
-            </div>
-        );
-    }
+function LandingPage({ onLogin }) {
+    return (
+        <div style={{ textAlign: "center", padding: "200px" }}>
+            <h2>ระบบจัดการห้องเรียนของอาจารย์</h2>
+            <p>กรุณาเข้าสู่ระบบเพื่อจัดการรายวิชา</p>
+            <Button variant="primary" onClick={onLogin}>เข้าสู่ระบบด้วย Google</Button>
+        </div>
+    );
 }
 
+function LoginBox({ user, app }) {
+    return !user ? (
+        <div>
+            <Button onClick={() => app.google_login()}>Google Login</Button>
+        </div>
+    ) : (
+        <div>
+            <img src={user.photoURL} alt="Profile" width="50" />
+            {user.email} <button onClick={() => app.google_logout()}>Logout</button>
+        </div>
+    );
+}
 
 function CoursesTable({ data, app }) {
     return (
-        <table className="table">
+        <Table striped bordered hover>
             <thead>
                 <tr>
                     <th>รหัสวิชา</th>
                     <th>ชื่อวิชา</th>
                     <th>ภาพวิชา</th>
-                    <th>ห้องเรียน</th>
+                    <th>ห้องที่สอน</th>
+                    <th>จัดการ</th>
                 </tr>
             </thead>
             <tbody>
-                {data && data.length > 0 ? (
+                {data.length > 0 ? (
                     data.map((c) => (
                         <tr key={c.id}>
                             <td>{c.info.code}</td>
                             <td>{c.info.name}</td>
-                            <td><img src={c.info.photo} alt="Subject Picture" width="50" /></td>
+                            <td><img src={c.info.photo} alt="Subject" width="150" /></td>
                             <td>{c.info.room}</td>
-                            <td><EditButton course={c} app={app} /></td>
-                            <td><DeleteButton course={c} app={app} /></td>
+                            <td>
+                                <Button variant="warning" onClick={() => app.edit(c)}>แก้ไข</Button>{' '}
+                                <Button variant="danger" onClick={() => app.delete(c)}>ลบ</Button>
+                            </td>
                         </tr>
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="6" style={{ textAlign: "center" }}>ไม่มีข้อมูลรายวิชา</td>
+                        <td colSpan="5" className="text-center">ไม่มีข้อมูลรายวิชา</td>
                     </tr>
                 )}
             </tbody>
-        </table>
+        </Table>
     );
 }
+function AddSubject({ user, app }) {
+    const [subjectCode, setSubjectCode] = React.useState("");
+    const [subjectName, setSubjectName] = React.useState("");
+    const [roomName, setRoomName] = React.useState("");
+    const [photoURL, setPhotoURL] = React.useState("");
 
-
-function EditButton({ course, app }) {
-    return <button onClick={() => app.edit(course)}>แก้ไข</button>
-}
-function DeleteButton({ course, app }) {
-    return <button onClick={() => app.delete(course)}>ลบ</button>
-}
-function EditProfile({ user }) {
-    const [displayName, setDisplayName] = React.useState(user?.displayName || "");
-    const [email, setEmail] = React.useState(user?.email || "");
-    const [photoURL, setPhotoURL] = React.useState(user?.photoURL || "");
-
-    const handleUpdateProfile = async () => {
-        const currentUser = firebase.auth().currentUser;
-        if (currentUser) {
-            try {
-                await currentUser.updateProfile({
-                    displayName: displayName,
-                    photoURL: photoURL
-                });
-
-                if (email !== currentUser.email) {
-                    await currentUser.updateEmail(email);
-                }
-
-                alert("โปรไฟล์อัปเดตสำเร็จ!");
-                window.location.reload(); // รีเฟรชเพื่ออัปเดตข้อมูลใหม่
-            } catch (error) {
-                alert("เกิดข้อผิดพลาด: " + error.message);
-            }
+    const handleSave = async () => {
+        if (!subjectCode || !subjectName || !roomName) {
+            alert("กรุณากรอกให้ครบทุกช่อง");
+            return;
         }
+        const cid = await addClassroom(user.uid, subjectCode, subjectName, roomName, photoURL);
+        alert("เพิ่มรายวิชาสำเร็จ");
+        app.setState({ scene: "dashboard" });
+        app.readData(); // Reload course list
     };
 
     return (
-        <div>
-            <h2>แก้ไขโปรไฟล์</h2>
-            <div>
-                <label>ชื่อ:</label>
-                <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-            </div>
-            <div>
-                <label>Email:</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div>
-                <label>รูปภาพ URL:</label>
-                <input type="text" value={photoURL} onChange={(e) => setPhotoURL(e.target.value)} />
-            </div>
-            <button onClick={handleUpdateProfile}>บันทึก</button>
-        </div>
+        <Card>
+            <Card.Header><h4>เพิ่มวิชา</h4></Card.Header>
+            <Card.Body>
+                <label>รหัสวิชา</label>
+                <input type="text" value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} className="form-control" />
+
+                <label>ชื่อวิชา</label>
+                <input type="text" value={subjectName} onChange={(e) => setSubjectName(e.target.value)} className="form-control" />
+
+                <label>ห้องที่สอน</label>
+                <input type="text" value={roomName} onChange={(e) => setRoomName(e.target.value)} className="form-control" />
+
+                <label>รูปภาพ</label>
+                <input type="text" value={photoURL} onChange={(e) => setPhotoURL(e.target.value)} className="form-control" />
+
+                <Button variant="success" onClick={handleSave} className="mt-3">บันทึกวิชา</Button>{' '}
+                <Button variant="secondary" onClick={() => app.setState({ scene: "dashboard" })} className="mt-3">ยกเลิก</Button>
+            </Card.Body>
+        </Card>
     );
+}
+
+async function addClassroom(uid, code, name, room, photoURL) {
+    const cid = db.collection("classroom").doc().id;
+    const classroomData = {
+        owner: uid,
+        info: { code, name, room, photo: photoURL || "" }
+    };
+    await db.collection("classroom").doc(cid).set(classroomData);
+    await db.collection("users").doc(uid).collection("classroom").doc(cid).set({ status: 1 });
+    return cid;
 }
 
 class App extends React.Component {
-    title = (
-        <Alert variant="info">
-            <b>หน้าต่าง </b> แก้ไขรายวิชา
-        </Alert>
-    );
-
     state = {
-        scene: 0,
+        scene: "dashboard",
         courses: [],
-        classCode: "",
-        className: "",
-        classPhoto: "",
-        classRoom: "",
-        classOwner: "",
         user: null,
-    }
+    };
+
     constructor() {
         super();
         firebase.auth().onAuthStateChanged((user) => {
-            this.setState({ user: user ? user.toJSON() : null });
+            if (user) {
+                this.setState({ user: user.toJSON() });
+                this.readData();
+            } else {
+                this.setState({ user: null, courses: [], scene: "dashboard" });
+            }
         });
     }
-    google_login() {
-        // Using a popup.
+
+    google_login = () => {
         var provider = new firebase.auth.GoogleAuthProvider();
-        provider.addScope("profile");
-        provider.addScope("email");
         firebase.auth().signInWithPopup(provider);
-    }
-    google_logout() {
-        if (window.confirm("Are you sure you want to logout?")) {
-            firebase.auth().signOut().then(() => {
-                this.setState({ user: null });
-            })
+    };
+
+    google_logout = () => {
+        if (window.confirm("ต้องการออกจากระบบ?")) {
+            firebase.auth().signOut().then(() => this.setState({ user: null }));
         }
-    }
+    };
+
+    readData = () => {
+        db.collection("classroom").get().then((querySnapshot) => {
+            const courseList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.setState({ courses: courseList });
+        });
+    };
+
+    delete = (course) => {
+        if (window.confirm("ต้องการลบข้อมูลนี้ใช่มั้ย")) {
+            db.collection("classroom").doc(course.id).delete().then(() => {
+                this.readData();
+            });
+        }
+    };
+
     render() {
+        if (!this.state.user) {
+            return <LandingPage onLogin={this.google_login} />;
+        }
+
         return (
             <Card>
-                <Card.Header>{this.title}</Card.Header>
-                <LoginBox user={this.state.user} app={this}></LoginBox>
+                <LoginBox user={this.state.user} app={this} />
                 <Card.Body>
-                    <Button onClick={() => this.readData()}>Read Data</Button>
-                    <Button onClick={() => this.readData()}>Add Subject</Button>
+                    <Button onClick={this.readData}>รีเฟรช</Button>{' '}
+                    <Button onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>
 
-                    {this.state.scene === "editProfile" ? (
-                        <EditProfile user={this.state.user} />
+                    {this.state.scene === "addSubject" ? (
+                        <AddSubject user={this.state.user} app={this} />
                     ) : (
-                        <>
-                            <Button onClick={() => this.setState({ scene: "editProfile" })}>Edit Profile</Button>
-                        </>
-                    )}
-                    <div>
                         <CoursesTable data={this.state.courses} app={this} />
-                    </div>
+                    )}
                 </Card.Body>
-                <Card.Footer>{this.footer}</Card.Footer>
             </Card>
         );
     }
-    // สำหรับรายวิชาที่มี
-    readData() {
-        db.collection("classroom").get().then((querySnapshot) => {
-            var courseList = [];
-            querySnapshot.forEach((doc) => {
-                courseList.push({ id: doc.id, ...doc.data() });
-            });
-            this.setState({ courses: courseList });
-        });
-    }
-    edit(course) {
-        this.setState({
-            classCode: course.info.code,
-            className: course.info.name,
-            classPhoto: course.info.photo,
-            classRoom: course.info.room,
-        })
-    }
-    delete(course) {
-        if (confirm("ต้องการลบข้อมูล")) {
-            db.collection("classroom").doc(course.id).delete();
-        }
-    }
 }
-
 const container = document.getElementById("myapp");
 const root = ReactDOM.createRoot(container);
 root.render(<App />); 
