@@ -1,4 +1,4 @@
-const { Alert, Card, Button, Table } = ReactBootstrap;
+const { Alert, Card, Button, Table, Form } = ReactBootstrap;
 
 const firebaseConfig = {
     apiKey: "AIzaSyDPfU2pqROLqgf5Fo4gekzY0-ycyG_3iI0",
@@ -22,16 +22,71 @@ function LandingPage({ onLogin }) {
     );
 }
 
-function LoginBox({ user, app }) {
-    return !user ? (
-        <div>
-            <Button onClick={() => app.google_login()}>Google Login</Button>
-        </div>
-    ) : (
-        <div>
-            <img src={user.photoURL} alt="Profile" width="50" />
-            {user.email} <button onClick={() => app.google_logout()}>Logout</button>
-        </div>
+function EditProfile({ user, app }) {
+    // ตรวจสอบว่ามี user หรือไม่
+    if (!user) {
+        return <p>กำลังโหลดข้อมูล...</p>;
+    }
+
+    const [name, setName] = React.useState(user.displayName || "");
+    const [photoURL, setPhotoURL] = React.useState(user.photoURL || "");
+
+    const handleSave = async () => {
+        if (!name.trim()) {
+            alert("กรุณากรอกชื่อ");
+            return;
+        }
+
+        try {
+            const userRef = db.collection("users").doc(user.uid);
+
+            // อัปเดตข้อมูลใน Firestore
+            await userRef.set({ name, photoURL },{ merge: true });
+
+            // อัปเดตข้อมูลใน Firebase Authentication
+            await firebase.auth().currentUser.updateProfile({displayName: name, photoURL: photoURL || ""});
+
+            // ดึงข้อมูลใหม่จาก Firestore
+            const updatedDoc = await userRef.get();
+            const updatedUserData = updatedDoc.data();
+
+            // อัปเดต state ของ App
+            app.setState({ user: { ...app.state.user, displayName: updatedUserData.name, photoURL: updatedUserData.photoURL }, scene: "dashboard" });
+        
+            alert("อัปเดตโปรไฟล์สำเร็จ!");
+           
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์");
+        }
+    };
+
+
+    return (
+        <Card className="mt-3">
+            <Card.Header><h4>แก้ไขโปรไฟล์</h4></Card.Header>
+            <Card.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>ชื่อ</Form.Label>
+                        <Form.Control type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control type="email" value={user.email} disabled />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>URL รูปภาพ</Form.Label>
+                        <Form.Control type="text" value={photoURL} onChange={(e) => setPhotoURL(e.target.value)} />
+                    </Form.Group>
+
+                    <Button variant="success" onClick={handleSave}>บันทึก</Button>{' '}
+                    <Button variant="secondary" onClick={() => app.setState({ scene: "dashboard" })}>ยกเลิก</Button>
+                </Form>
+            </Card.Body>
+        </Card>
     );
 }
 
@@ -130,16 +185,27 @@ class App extends React.Component {
 
     constructor() {
         super();
-        firebase.auth().onAuthStateChanged((user) => {
+        firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 this.setState({ user: user.toJSON() });
+                const userRef = db.collection("users").doc(user.uid);
+                const doc = await userRef.get();
+
+                if (!doc.exists) {
+                    // สร้างบัญชีผู้ใช้ใหม่ใน Firestore
+                    await userRef.set({
+                        name: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                    });
+                }
+
                 this.readData();
             } else {
                 this.setState({ user: null, courses: [], scene: "dashboard" });
             }
         });
     }
-
     google_login = () => {
         var provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().signInWithPopup(provider);
@@ -173,13 +239,21 @@ class App extends React.Component {
 
         return (
             <Card>
-                <LoginBox user={this.state.user} app={this} />
+                <Card.Header>
+                    <img src={this.state.user.photoURL} alt="Profile" width="50" className="rounded-circle" />{' '}
+                    {this.state.user.displayName} ({this.state.user.email}){' '}
+                    <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
+                    <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
+                </Card.Header>
+
                 <Card.Body>
                     <Button onClick={this.readData}>รีเฟรช</Button>{' '}
                     <Button onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>
 
                     {this.state.scene === "addSubject" ? (
                         <AddSubject user={this.state.user} app={this} />
+                    ) : this.state.scene === "editProfile" ? (
+                        <EditProfile user={this.state.user} app={this} />
                     ) : (
                         <CoursesTable data={this.state.courses} app={this} />
                     )}
@@ -188,6 +262,7 @@ class App extends React.Component {
         );
     }
 }
+
 const container = document.getElementById("myapp");
 const root = ReactDOM.createRoot(container);
 root.render(<App />); 
