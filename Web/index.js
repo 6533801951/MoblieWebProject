@@ -41,10 +41,10 @@ function EditProfile({ user, app }) {
             const userRef = db.collection("users").doc(user.uid);
 
             // อัปเดตข้อมูลใน Firestore
-            await userRef.set({ name, photoURL },{ merge: true });
+            await userRef.set({ name, photoURL }, { merge: true });
 
             // อัปเดตข้อมูลใน Firebase Authentication
-            await firebase.auth().currentUser.updateProfile({displayName: name, photoURL: photoURL || ""});
+            await firebase.auth().currentUser.updateProfile({ displayName: name, photoURL: photoURL || "" });
 
             // ดึงข้อมูลใหม่จาก Firestore
             const updatedDoc = await userRef.get();
@@ -52,9 +52,9 @@ function EditProfile({ user, app }) {
 
             // อัปเดต state ของ App
             app.setState({ user: { ...app.state.user, displayName: updatedUserData.name, photoURL: updatedUserData.photoURL }, scene: "dashboard" });
-        
+
             alert("อัปเดตโปรไฟล์สำเร็จ!");
-           
+
         } catch (error) {
             console.error("เกิดข้อผิดพลาด:", error);
             alert("เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์");
@@ -242,14 +242,12 @@ class App extends React.Component {
                 <Card.Header>
                     <img src={this.state.user.photoURL} alt="Profile" width="50" className="rounded-circle" />{' '}
                     {this.state.user.displayName} ({this.state.user.email}){' '}
-                    <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
-                    <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
+                        <Button variant="primary" onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>{' '}
+                        <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
+                        <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
+
                 </Card.Header>
-
                 <Card.Body>
-                    <Button onClick={this.readData}>รีเฟรช</Button>{' '}
-                    <Button onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>
-
                     {this.state.scene === "addSubject" ? (
                         <AddSubject user={this.state.user} app={this} />
                     ) : this.state.scene === "editProfile" ? (
