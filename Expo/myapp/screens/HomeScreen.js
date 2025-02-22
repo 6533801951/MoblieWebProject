@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -10,40 +10,40 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.headerTitle}>Welcome</Text>
 
       <View style={styles.gridContainer}>
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="checkmark-circle-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Check-in</Text>
-          <Text style={styles.cardSubtitle}>เช็คชื่อนักศึกษา</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Score")}>
-          <Ionicons name="bar-chart-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Score</Text>
-          <Text style={styles.cardSubtitle}>เช็คคะแนนของรายวิชา</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="stats-chart-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Attendance Summary</Text>
-          <Text style={styles.cardSubtitle}>รายงานการเข้าเรียน</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="chatbox-ellipses-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Q&A Forum</Text>
-          <Text style={styles.cardSubtitle}>ถาม/ตอบ ในห้องเรียน</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="podium-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Live Poll</Text>
-          <Text style={styles.cardSubtitle}>สำรวจความคิดเห็นของนักศึกษา</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Account")}>
           <Ionicons name="person-circle-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Account</Text>
+          <Text style={styles.cardTitle}>ข้อมูลส่วนตัว</Text>
           <Text style={styles.cardSubtitle}>จัดการข้อมูลส่วนตัว</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card}>
+          <Ionicons name="add-circle-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>เพิ่มรายวิชา</Text>
+          <Text style={styles.cardSubtitle}>เพิ่มรายวิชาที่คุณสนใจ</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card}>
+          <Ionicons name="book-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>รายวิชาที่เรียน</Text>
+          <Text style={styles.cardSubtitle}>แสดงรายวิชาที่คุณลงทะเบียน</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen")}>
+          <Ionicons name="school-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>C1</Text>
+          <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C1</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen")}>
+          <Ionicons name="school-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>C2</Text>
+          <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C2</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen")}>
+          <Ionicons name="school-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>C3</Text>
+          <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C3</Text>
         </TouchableOpacity>
       </View>
 
@@ -57,36 +57,36 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1b2b4c", paddingHorizontal: 18 },
 
-  headerTitle: { 
-    fontSize: 30, 
-    fontWeight: "bold", 
-    color: "#ffffff", 
-    position: "absolute", 
-    top: 15, 
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#ffffff",
+    position: "absolute",
+    top: 15,
     alignSelf: "center",
   },
 
-  logoutButton: { 
-    position: "absolute", 
-    bottom: 40, 
-    alignSelf: "center", 
+  logoutButton: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
     backgroundColor: "#c0392b",
-    paddingHorizontal: 20, 
-    paddingVertical: 10, 
-    borderRadius: 10, 
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  logoutText: { 
-    fontSize: 18, 
-    color: "#ffffff", 
-    fontWeight: "bold", 
-    textAlign: "center", 
+  logoutText: {
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
-  gridContainer: { 
-    flexDirection: "row", 
-    flexWrap: "wrap", 
-    justifyContent: "space-between", 
-    width: "100%", 
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    width: "100%",
     alignItems: "stretch",
     marginTop: "20%",
   },
