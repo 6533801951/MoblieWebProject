@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from "reac
 import { auth } from "../firebaseConfig";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
+import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons"; 
 
@@ -13,10 +14,13 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     webClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
     androidClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
     iosClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
+    redirectUri: makeRedirectUri({
+      useProxy: true,
+    }),
   });
 
   useEffect(() => {
@@ -62,6 +66,7 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
+      {/* MODAL POPUP LOGIN SUCCESS */}
       <Modal animationType="fade" transparent={true} visible={modalVisible}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
@@ -87,6 +92,7 @@ const styles = StyleSheet.create({
   registerButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#27ae60", alignItems: "center", marginTop: 10 },
   buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold" },
 
+  // MODAL STYLES
   modalBackground: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
   modalContainer: { width: "85%", padding: 30, borderRadius: 12, backgroundColor: "#1b2b4c", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 5 },
   modalTitle: { fontSize: 22, fontWeight: "bold", color: "#ffffff", marginTop: 10, textTransform: "uppercase" },
