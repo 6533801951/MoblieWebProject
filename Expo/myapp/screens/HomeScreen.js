@@ -1,59 +1,71 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      const hours = now.getHours() % 12 || 12;
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const seconds = now.getSeconds().toString().padStart(2, "0");
+      const ampm = now.getHours() >= 12 ? "PM" : "AM";
+      setCurrentTime(`${hours}:${minutes}:${seconds} ${ampm}`);
+    };
+
+    const interval = setInterval(updateClock, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar hidden={true} />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Welcome</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.headerTitle}>Welcome</Text>
 
       <View style={styles.gridContainer}>
         <TouchableOpacity style={styles.card}>
-          <Ionicons name="calendar-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Calendar</Text>
-          <Text style={styles.cardSubtitle}>March, Wednesday</Text>
-          <Text style={styles.cardInfo}>3 Events</Text>
+          <Ionicons name="checkmark-circle-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Check-in</Text>
+          <Text style={styles.cardSubtitle}>เช็คชื่อนักศึกษา</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card}>
-          <Ionicons name="cart-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Groceries</Text>
-          <Text style={styles.cardSubtitle}>Broccoli, Apple</Text>
-          <Text style={styles.cardInfo}>4 items</Text>
+          <Ionicons name="time-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Current Time</Text>
+          <Text style={styles.cardSubtitle}>{currentTime}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card}>
-          <Ionicons name="location-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Location</Text>
-          <Text style={styles.cardSubtitle}>Lucy Mao going to Office</Text>
+          <Ionicons name="stats-chart-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Attendance Summary</Text>
+          <Text style={styles.cardSubtitle}>รายงานการเข้าเรียน</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card}>
-          <Ionicons name="notifications-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Activity</Text>
-          <Text style={styles.cardSubtitle}>Rose favorited your Post</Text>
+          <Ionicons name="chatbox-ellipses-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Q&A Forum</Text>
+          <Text style={styles.cardSubtitle}>ถาม/ตอบ ในห้องเรียน</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card}>
-          <Ionicons name="checkmark-done-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>To do</Text>
-          <Text style={styles.cardSubtitle}>Homework, Design</Text>
-          <Text style={styles.cardInfo}>4 items</Text>
+          <Ionicons name="podium-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Live Poll</Text>
+          <Text style={styles.cardSubtitle}>สำรวจความคิดเห็นของนักศึกษา</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="settings-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Settings</Text>
-          <Text style={styles.cardSubtitle}>Manage your account</Text>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Account")}>
+          <Ionicons name="person-circle-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Account</Text>
+          <Text style={styles.cardSubtitle}>จัดการข้อมูลส่วนตัว</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -61,34 +73,47 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1b2b4c", paddingHorizontal: 18 },
 
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 30 },
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#ffffff", alignSelf: "flex-start", paddingTop: 1, marginLeft: 5, top: 20 },
+  headerTitle: { 
+    fontSize: 30, 
+    fontWeight: "bold", 
+    color: "#ffffff", 
+    position: "absolute", 
+    top: 40, 
+    alignSelf: "center",
+  },
 
   logoutButton: { 
     position: "absolute", 
-    right: 10, 
-    paddingHorizontal: 12, 
-    paddingVertical: 5, 
-    borderRadius: 8, 
-    backgroundColor: "rgba(255,255,255,0.2)",
-    top: 25, 
+    bottom: 40, 
+    alignSelf: "center", 
+    backgroundColor: "#c0392b",
+    paddingHorizontal: 20, 
+    paddingVertical: 10, 
+    borderRadius: 10, 
   },
   logoutText: { 
-    fontSize: 16, 
+    fontSize: 18, 
     color: "#ffffff", 
-    textDecorationLine: "none", 
-    textAlign: "center" 
+    fontWeight: "bold", 
+    textAlign: "center", 
   },
 
-  gridContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", width: "100%", alignItems: "center" },
+  gridContainer: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    justifyContent: "space-between", 
+    width: "100%", 
+    alignItems: "stretch",
+    marginTop: "30%",
+  },
 
   card: {
     width: "48%",
+    aspectRatio: 1,
     backgroundColor: "#2c3e50",
-    paddingVertical: 25,
-    paddingHorizontal: 15,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 15,
     shadowColor: "#000",
     shadowOpacity: 0.2,
@@ -97,5 +122,4 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 18, fontWeight: "bold", color: "#ffffff", marginTop: 10 },
   cardSubtitle: { fontSize: 14, color: "#dcdde1", marginTop: 5, textAlign: "center" },
-  cardInfo: { fontSize: 12, color: "#a4b0be", marginTop: 5 },
 });
