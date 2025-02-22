@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!username || !password || !confirmPassword) {
       Alert.alert("⚠️ ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
@@ -17,8 +18,13 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    Alert.alert("✅ ลงทะเบียนสำเร็จ!", "คุณสามารถเข้าสู่ระบบได้แล้ว");
-    navigation.navigate("Login");
+    try {
+      await AsyncStorage.setItem("registeredUser", JSON.stringify({ username, password }));
+      Alert.alert("✅ ลงทะเบียนสำเร็จ!", "คุณสามารถเข้าสู่ระบบได้แล้ว");
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Error saving data:", error);
+    }
   };
 
   return (
