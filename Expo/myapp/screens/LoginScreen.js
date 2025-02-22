@@ -8,7 +8,7 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = () => {
     if (username === "admin" && password === "1234") {
       Alert.alert("เข้าสู่ระบบสำเร็จ 🎉", "ยินดีต้อนรับ Admin!");
-      navigation.navigate("Home"); // ไปหน้า HomeScreen
+      navigation.navigate("Home");
     } else {
       Alert.alert("เกิดข้อผิดพลาด ❌", "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
     }
