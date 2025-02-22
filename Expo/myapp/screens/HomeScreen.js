@@ -21,7 +21,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar hidden={true} />
+      <StatusBar hidden={false} />
 
       <Text style={styles.headerTitle}>Welcome</Text>
 
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold", 
     color: "#ffffff", 
     position: "absolute", 
-    top: 40, 
+    top: 15, 
     alignSelf: "center",
   },
 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between", 
     width: "100%", 
     alignItems: "stretch",
-    marginTop: "30%",
+    marginTop: "20%",
   },
 
   card: {
