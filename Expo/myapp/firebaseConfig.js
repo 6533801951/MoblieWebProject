@@ -1,7 +1,7 @@
-import { initializeApp } from "firebase/app";
-import { getReactNativePersistence, initializeAuth, getAuth, GoogleAuthProvider } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDPfU2pqROLqgf5Fo4gekzY0-ycyG_3iI0",
@@ -13,11 +13,9 @@ const firebaseConfig = {
     measurementId: "G-5SEG550KEX"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export { auth, db, googleProvider };
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export { auth, db, RecaptchaVerifier, signInWithPhoneNumber };
