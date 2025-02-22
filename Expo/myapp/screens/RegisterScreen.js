@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { auth, db } from "../firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
 
 export default function RegisterScreen({ navigation }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
-    if (!username || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert("⚠️ ข้อผิดพลาด", "กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
@@ -19,11 +21,19 @@ export default function RegisterScreen({ navigation }) {
     }
 
     try {
-      await AsyncStorage.setItem("registeredUser", JSON.stringify({ username, password }));
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // บันทึกข้อมูล Email ไปที่ Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email,
+        createdAt: new Date(),
+      });
+
       Alert.alert("✅ ลงทะเบียนสำเร็จ!", "คุณสามารถเข้าสู่ระบบได้แล้ว");
       navigation.navigate("Login");
     } catch (error) {
-      console.error("Error saving data:", error);
+      Alert.alert("❌ ข้อผิดพลาด", error.message);
     }
   };
 
@@ -32,29 +42,25 @@ export default function RegisterScreen({ navigation }) {
       <Text style={styles.title}>📝 Register</Text>
 
       <TextInput
-        style={[styles.input, styles.defaultFont]}
-        placeholder="Username"
-        placeholderTextColor="#95a5a6"
-        value={username}
-        onChangeText={setUsername}
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
       />
-
       <TextInput
-        style={[styles.input, styles.defaultFont]}
+        style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#95a5a6"
-        secureTextEntry
         value={password}
         onChangeText={setPassword}
-      />
-
-      <TextInput
-        style={[styles.input, styles.defaultFont]}
-        placeholder="Confirm Password"
-        placeholderTextColor="#95a5a6"
         secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
+        secureTextEntry
       />
 
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
@@ -69,53 +75,11 @@ export default function RegisterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#2c3e50",
-    padding: 20,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#ebedef",
-    marginBottom: 30,
-    fontFamily: "MahpaDemo",
-  },
-  input: {
-    width: "85%",
-    padding: 12,
-    marginBottom: 15,
-    borderRadius: 8,
-    backgroundColor: "#ebedef",
-    color: "#2c3e50",
-    fontSize: 16,
-  },
-  defaultFont: {
-    fontFamily: "System",
-  },
-  registerButton: {
-    width: "85%",
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: "#3498db",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  registerText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: "MahpaDemo",
-  },
-  backToLogin: {
-    marginTop: 15,
-  },
-  backToLoginText: {
-    color: "#ffffff",
-    fontSize: 16,
-    textDecorationLine: "underline",
-    fontFamily: "System",
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#2c3e50", padding: 20 },
+  title: { fontSize: 30, fontWeight: "bold", color: "#ebedef", marginBottom: 30 },
+  input: { width: "85%", padding: 12, marginBottom: 15, borderRadius: 8, backgroundColor: "#ebedef", color: "#2c3e50", fontSize: 16 },
+  registerButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#3498db", alignItems: "center", marginTop: 10 },
+  registerText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  backToLogin: { marginTop: 15 },
+  backToLoginText: { color: "#ffffff", fontSize: 16, textDecorationLine: "underline" },
 });
