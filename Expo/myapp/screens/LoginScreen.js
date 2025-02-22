@@ -62,14 +62,14 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      <Modal animationType="slide" transparent={true} visible={modalVisible}>
+      <Modal animationType="fade" transparent={true} visible={modalVisible}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Ionicons name="checkmark-circle" size={60} color="#2ecc71" />
+            <Ionicons name="checkmark-circle" size={80} color="#2ecc71" />
             <Text style={styles.modalTitle}>LOGIN SUCCESSFUL</Text>
             <Text style={styles.modalText}>You have successfully signed into your account.</Text>
             <TouchableOpacity style={styles.modalButton} onPress={() => { setModalVisible(false); navigation.navigate("Home"); }}>
-              <Text style={styles.modalButtonText}>CLOSE WINDOW</Text>
+              <Text style={styles.modalButtonText}>CLOSE</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -86,4 +86,11 @@ const styles = StyleSheet.create({
   googleButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#e74c3c", alignItems: "center", marginTop: 10 },
   registerButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#27ae60", alignItems: "center", marginTop: 10 },
   buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold" },
+
+  modalBackground: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
+  modalContainer: { width: "85%", padding: 30, borderRadius: 12, backgroundColor: "#1b2b4c", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 5 },
+  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#ffffff", marginTop: 10, textTransform: "uppercase" },
+  modalText: { fontSize: 16, color: "#ffffff", textAlign: "center", marginVertical: 10, lineHeight: 22 },
+  modalButton: { width: "100%", padding: 15, borderRadius: 8, backgroundColor: "#0a1f44", alignItems: "center", marginTop: 15 },
+  modalButtonText: { color: "#ffffff", fontSize: 16, fontWeight: "bold" },
 });
