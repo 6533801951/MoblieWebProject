@@ -1,19 +1,18 @@
-// firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDPfU2pqROLqgf5Fo4gekzY0-ycyG_3iI0",
+  authDomain: "mobliewebproject.firebaseapp.com",
+  projectId: "mobliewebproject",
+  storageBucket: "mobliewebproject.firebasestorage.app",
+  messagingSenderId: "16500471511",
+  appId: "1:16500471511:web:eed3142ca86deaf3ce6292",
+  measurementId: "G-5SEG550KEX"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
-export { auth, db };
+export { auth, googleProvider };
