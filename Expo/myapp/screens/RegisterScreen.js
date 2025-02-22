@@ -60,7 +60,7 @@ export default function RegisterScreen({ navigation }) {
             <Text style={styles.modalTitle}>REGISTER SUCCESSFUL</Text>
             <Text style={styles.modalText}>You have successfully created an account.</Text>
             <TouchableOpacity style={styles.modalButton} onPress={() => { setModalVisible(false); navigation.navigate("Login"); }}>
-              <Text style={styles.modalButtonText}>CLOSE WINDOW</Text>
+              <Text style={styles.modalButtonText}>Back to Login</Text>
             </TouchableOpacity>
           </View>
         </View>
