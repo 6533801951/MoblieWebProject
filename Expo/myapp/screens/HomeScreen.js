@@ -3,22 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-nativ
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
-  const [currentTime, setCurrentTime] = useState("");
-
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const hours = now.getHours() % 12 || 12;
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      const seconds = now.getSeconds().toString().padStart(2, "0");
-      const ampm = now.getHours() >= 12 ? "PM" : "AM";
-      setCurrentTime(`${hours}:${minutes}:${seconds} ${ampm}`);
-    };
-
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <View style={styles.container}>
       <StatusBar hidden={false} />
@@ -32,10 +16,10 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.cardSubtitle}>เช็คชื่อนักศึกษา</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card}>
-          <Ionicons name="time-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Current Time</Text>
-          <Text style={styles.cardSubtitle}>{currentTime}</Text>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Score")}>
+          <Ionicons name="bar-chart-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Score</Text>
+          <Text style={styles.cardSubtitle}>เช็คคะแนนของรายวิชา</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card}>
