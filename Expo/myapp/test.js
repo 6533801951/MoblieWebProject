@@ -23,7 +23,7 @@ export default function LoginScreen({ navigation }) {
         value={username}
         onChangeText={setUsername}
       />
-      <TextInput
+      <TextInputฆ
         style={styles.input}
         placeholder="Password"
         secureTextEntry
