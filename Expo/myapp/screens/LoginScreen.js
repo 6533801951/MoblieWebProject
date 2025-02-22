@@ -10,8 +10,8 @@ export default function LoginScreen({ navigation }) {
 
   const loadFonts = async () => {
     await Font.loadAsync({
-        "MahpaDemo": require("../assets/fonts/MahpaDemo.ttf"),
-      });      
+      "MahpaDemo": require("../assets/fonts/MahpaDemo.ttf"),
+    });
     setFontsLoaded(true);
   };
 
@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }) {
       <Text style={styles.title}>🔐 Login</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, styles.defaultFont]}
         placeholder="Username"
         placeholderTextColor="#95a5a6"
         value={username}
@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
       />
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, styles.defaultFont]}
         placeholder="Password"
         placeholderTextColor="#95a5a6"
         secureTextEntry
@@ -79,7 +79,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ebedef",
     color: "#2c3e50",
     fontSize: 16,
-    fontFamily: "MahpaDemo",
+  },
+  defaultFont: {
+    fontFamily: "System",
   },
   loginButton: {
     width: "85%",
