@@ -61,7 +61,6 @@ function EditProfile({ user, app }) {
         }
     };
 
-
     return (
         <Card className="mt-3">
             <Card.Header><h4>แก้ไขโปรไฟล์</h4></Card.Header>
@@ -111,7 +110,7 @@ function CoursesTable({ data, app }) {
                             <td><img src={c.info.photo} alt="Subject" width="150" /></td>
                             <td>{c.info.room}</td>
                             <td>
-                                <Button variant="warning" onClick={() => app.edit(c)}>แก้ไข</Button>{' '}
+                                <Button variant="warning" onClick={() => app.manageCourse(c)}>จัดการ</Button>{' '}
                                 <Button variant="danger" onClick={() => app.delete(c)}>ลบ</Button>
                             </td>
                         </tr>
@@ -176,11 +175,113 @@ async function addClassroom(uid, code, name, room, photoURL) {
     return cid;
 }
 
+function ManagaCourse({ course, app }) {
+    const [tab, setTab] = React.useState("details");
+
+    return (
+        <Card>
+            <Card.Header>
+                <h4>จัดการรายวิชา: {course.info.name}</h4>
+                <Button variant="secondary" onClick={() => app.setState({ scene: "dashboard" })}>ย้อนกลับ</Button>
+            </Card.Header>
+
+            <Card.Body>
+                <nav className="nav nav-tabs">
+                    <a className={`nav-link ${tab === "details" ? "active" : ""}`} onClick={() => setTab("details")}>รายละเอียด</a>
+                    <a className={`nav-link ${tab === "qrcode" ? "active" : ""}`} onClick={() => setTab("qrcode")}>QR Code</a>
+                    <a className={`nav-link ${tab === "students" ? "active" : ""}`} onClick={() => setTab("students")}>นักเรียน</a>
+                    <a className={`nav-link ${tab === "attendance" ? "active" : ""}`} onClick={() => setTab("attendance")}>เช็คชื่อ</a>
+                </nav>
+
+                <div className="mt-3">
+                    {tab === "details" && <CourseDetails course={course} />}
+                    {tab === "qrcode" && <CourseQRCode cid={course.id} />}
+                    {tab === "students" && <StudentList cid={course.id} />}
+                    {tab === "attendance" && <Attendance cid={course.id} />}
+                </div>
+            </Card.Body>
+        </Card>
+    );
+}
+function CourseDetails({ course }) {
+    return (
+        <div>
+            <h5>รหัสวิชา: {course.info.code}</h5>
+            <h5>ชื่อวิชา: {course.info.name}</h5>
+            <h5>ห้องที่สอน: {course.info.room}</h5>
+            <img src={course.info.photo} alt="Subject Image" width="300" />
+        </div>
+    );
+}
+function CourseQRCode({ cid }) {
+    return (
+        <div className="text-center">
+            <h5>QR Code สำหรับเข้าร่วม</h5>
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${cid}`} alt="QR Code" />
+        </div>
+    );
+}
+function StudentList({ cid }) {
+    const [students, setStudents] = React.useState([]);
+
+    React.useEffect(() => {
+        db.collection(`classroom/${cid}/students`).get().then((querySnapshot) => {
+            setStudents(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+    }, [cid]);
+
+    return (
+        <Table striped bordered hover>
+            <thead>
+                <tr>
+                    <th>ลำดับ</th>
+                    <th>รหัส</th>
+                    <th>ชื่อ</th>
+                    <th>รูปภาพ</th>
+                    <th>สถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {students.map((s, index) => (
+                    <tr key={s.id}>
+                        <td>{index + 1}</td>
+                        <td>{s.id}</td>
+                        <td>{s.name}</td>
+                        <td><img src={s.photo} alt="Student" width="50" /></td>
+                        <td>{s.status}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </Table>
+    );
+}
+function Attendance({ cid }) {
+    return (
+        <div>
+            <Button variant="success">เพิ่มการเช็คชื่อ</Button>
+            <h5>ประวัติการเช็คชื่อ</h5>
+            <Table striped bordered hover>
+            <thead>
+                <tr>
+                    <th>ลำดับ</th>
+                    <th>วัน-เวลา</th>
+                    <th>จำนวนคนเข้าเรียน</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                </tr>
+            </thead>
+        </Table>
+        </div>
+    );
+}
+
+
 class App extends React.Component {
     state = {
         scene: "dashboard",
         courses: [],
         user: null,
+        currentCourse: null,
     };
 
     constructor() {
@@ -206,45 +307,49 @@ class App extends React.Component {
             }
         });
     }
-    google_login = () => {
-        var provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider);
-    };
-
-    google_logout = () => {
-        if (window.confirm("ต้องการออกจากระบบ?")) {
-            firebase.auth().signOut().then(() => this.setState({ user: null }));
-        }
-    };
-
+    google_login = () => { firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); };
+    google_logout = () => { if (window.confirm("ต้องการออกจากระบบ?")) firebase.auth().signOut().then(() => this.setState({ user: null })); };
     readData = () => {
-        db.collection("classroom").get().then((querySnapshot) => {
-            const courseList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            this.setState({ courses: courseList });
-        });
+        if (!this.state.user) return;
+        db.collection("classroom")
+            .where("owner", "==", this.state.user.uid)
+            .get()
+            .then((querySnapshot) => {
+                this.setState({
+                    courses: querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching courses:", error);
+            });
     };
-
     delete = (course) => {
         if (window.confirm("ต้องการลบข้อมูลนี้ใช่มั้ย")) {
-            db.collection("classroom").doc(course.id).delete().then(() => {
-                this.readData();
-            });
+            db.collection("users").doc(this.state.user.uid).collection("classroom").doc(course.id).delete()
+                .then(() => {
+                    return db.collection("classroom").doc(course.id).delete();
+                })
+                .then(() => {
+                    this.readData();
+                })
+                .catch(error => {
+                    console.error("Error removing document: ", error);
+                });
         }
     };
-
+    manageCourse = (course) => {
+        this.setState({ currentCourse: course, scene: "manageCourse" });
+    };
     render() {
-        if (!this.state.user) {
-            return <LandingPage onLogin={this.google_login} />;
-        }
-
+        if (!this.state.user) return <LandingPage onLogin={this.google_login} />;
         return (
             <Card>
                 <Card.Header>
                     <img src={this.state.user.photoURL} alt="Profile" width="50" className="rounded-circle" />{' '}
                     {this.state.user.displayName} ({this.state.user.email}){' '}
-                        <Button variant="primary" onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>{' '}
-                        <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
-                        <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
+                    <Button variant="primary" onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>{' '}
+                    <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
+                    <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
 
                 </Card.Header>
                 <Card.Body>
@@ -252,6 +357,8 @@ class App extends React.Component {
                         <AddSubject user={this.state.user} app={this} />
                     ) : this.state.scene === "editProfile" ? (
                         <EditProfile user={this.state.user} app={this} />
+                    ) : this.state.scene === "manageCourse" ? (
+                        <ManagaCourse course={this.state.currentCourse} app={this} />
                     ) : (
                         <CoursesTable data={this.state.courses} app={this} />
                     )}
@@ -261,6 +368,5 @@ class App extends React.Component {
     }
 }
 
-const container = document.getElementById("myapp");
-const root = ReactDOM.createRoot(container);
+const root = ReactDOM.createRoot(document.getElementById("myapp"));
 root.render(<App />); 
