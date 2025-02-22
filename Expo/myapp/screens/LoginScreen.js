@@ -10,8 +10,8 @@ export default function LoginScreen({ navigation }) {
 
   const loadFonts = async () => {
     await Font.loadAsync({
-      "MahpaDemo": require("../assets/fonts/MahpaDemo.ttf"),
-    });
+        "MahpaDemo": require("../assets/fonts/MahpaDemo.ttf"),
+      });      
     setFontsLoaded(true);
   };
 
