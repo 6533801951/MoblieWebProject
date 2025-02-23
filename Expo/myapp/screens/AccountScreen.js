@@ -44,7 +44,6 @@ export default function AccountScreen({ navigation }) {
     }
   };
 
-  // ✅ บันทึกข้อมูลลง Firestore
   const saveUserData = async () => {
     if (!firstName || !lastName || !studentID || !faculty || !major || !gender) {
       Alert.alert("⚠️ กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
