@@ -70,4 +70,4 @@ const AccountScreen = () => {
 };
 
 export default AccountScreen;
-//pushkdsom,cd
+//expromaskdwa
