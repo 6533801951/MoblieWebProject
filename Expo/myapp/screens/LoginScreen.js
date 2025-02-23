@@ -32,6 +32,12 @@ export default function LoginScreen({ navigation }) {
   }, [response]);
 
   const handleLogin = () => {
+    // ✅ ตรวจสอบรหัสสำหรับทดสอบ
+    if (email === "admin" && password === "123456") {
+      setModalVisible(true);
+      return;
+    }
+
     signInWithEmailAndPassword(auth, email, password)
       .then(() => setModalVisible(true))
       .catch(error => alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง: " + error.message));
@@ -75,7 +81,7 @@ export default function LoginScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <Ionicons name="checkmark-circle" size={80} color="#2ecc71" />
             <Text style={styles.modalTitle}>LOGIN SUCCESSFUL</Text>
-            <Text style={styles.modalText}>You have successfully signed into your account.</Text>
+            <Text style={styles.modalText}>ลงชื่อเข้าใช้บัญชีของคุณสำเร็จแล้ว!</Text>
             <TouchableOpacity style={styles.modalButton} onPress={() => { setModalVisible(false); navigation.navigate("Home"); }}>
               <Text style={styles.modalButtonText}>CLOSE</Text>
             </TouchableOpacity>
