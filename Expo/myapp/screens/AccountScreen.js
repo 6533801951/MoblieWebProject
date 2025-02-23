@@ -73,7 +73,6 @@ export default function AccountScreen({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>👤 ข้อมูลส่วนตัว</Text>
-
       <TextInput style={styles.input} placeholder="ชื่อจริง *" value={firstName} onChangeText={setFirstName} />
       <TextInput style={styles.input} placeholder="นามสกุล *" value={lastName} onChangeText={setLastName} />
       <TextInput style={styles.input} placeholder="รหัสนักศึกษา *" value={studentID} onChangeText={setStudentID} keyboardType="numeric" />
