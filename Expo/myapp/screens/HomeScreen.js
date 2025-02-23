@@ -9,7 +9,6 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.headerTitle}>Welcome</Text>
 
       <View style={styles.gridContainer}>
-        {/* ✅ อัปเดตให้ไปที่ AccountScreen */}
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("AccountScreen")}>
           <Ionicons name="person-circle-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>ข้อมูลส่วนตัว</Text>
@@ -28,7 +27,6 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.cardSubtitle}>แสดงรายวิชาที่คุณลงทะเบียน</Text>
         </TouchableOpacity>
 
-        {/* ✅ ส่งชื่อรายวิชาไปยัง HomeClassScreen */}
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { course: "C1" })}>
           <Ionicons name="school-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>C1</Text>
