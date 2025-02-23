@@ -70,4 +70,4 @@ const AccountScreen = () => {
 };
 
 export default AccountScreen;
-//cherubomm
+//pushkdsom,cd
