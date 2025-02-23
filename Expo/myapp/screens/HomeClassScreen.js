@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeClassScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar hidden={false} />
-
       <Text style={styles.headerTitle}>Welcome</Text>
 
       <View style={styles.gridContainer}>
@@ -40,16 +39,12 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.cardSubtitle}>สำรวจความคิดเห็นของนักศึกษา</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Account")}>
-          <Ionicons name="person-circle-outline" size={40} color="#ffffff" />
-          <Text style={styles.cardTitle}>Account</Text>
-          <Text style={styles.cardSubtitle}>จัดการข้อมูลส่วนตัว</Text>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Home")}>
+          <Ionicons name="arrow-back-circle-outline" size={40} color="#ffffff" />
+          <Text style={styles.cardTitle}>Back</Text>
+          <Text style={styles.cardSubtitle}>กลับไปหน้า Home</Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -64,22 +59,6 @@ const styles = StyleSheet.create({
     position: "absolute", 
     top: 15, 
     alignSelf: "center",
-  },
-
-  logoutButton: { 
-    position: "absolute", 
-    bottom: 40, 
-    alignSelf: "center", 
-    backgroundColor: "#c0392b",
-    paddingHorizontal: 20, 
-    paddingVertical: 10, 
-    borderRadius: 10, 
-  },
-  logoutText: { 
-    fontSize: 18, 
-    color: "#ffffff", 
-    fontWeight: "bold", 
-    textAlign: "center", 
   },
 
   gridContainer: { 

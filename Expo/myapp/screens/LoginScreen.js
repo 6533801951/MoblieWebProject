@@ -32,6 +32,12 @@ export default function LoginScreen({ navigation }) {
   }, [response]);
 
   const handleLogin = () => {
+    // ✅ ตรวจสอบรหัสสำหรับทดสอบ
+    if (email === "admin" && password === "123456") {
+      setModalVisible(true);
+      return;
+    }
+
     signInWithEmailAndPassword(auth, email, password)
       .then(() => setModalVisible(true))
       .catch(error => alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง: " + error.message));
