@@ -9,7 +9,7 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.headerTitle}>Welcome</Text>
 
       <View style={styles.gridContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("AccountScreen")}>
+      <TouchableOpacity style={styles.card}>
           <Ionicons name="person-circle-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>ข้อมูลส่วนตัว</Text>
           <Text style={styles.cardSubtitle}>จัดการข้อมูลส่วนตัว</Text>

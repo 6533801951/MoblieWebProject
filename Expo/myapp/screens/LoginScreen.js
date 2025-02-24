@@ -15,9 +15,9 @@ export default function LoginScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: "YOUR_WEB_CLIENT_ID",
-    androidClientId: "YOUR_ANDROID_CLIENT_ID",
-    iosClientId: "YOUR_IOS_CLIENT_ID",
+    webClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
+    androidClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
+    iosClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
     redirectUri: makeRedirectUri({ useProxy: true }),
   });
 
