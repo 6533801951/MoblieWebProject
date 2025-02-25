@@ -58,7 +58,7 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <Ionicons name="checkmark-circle" size={60} color="#2ecc71" />
             <Text style={styles.modalTitle}>REGISTER SUCCESSFUL</Text>
-            <Text style={styles.modalText}>คุณได้สร้างบัญชีสำเร็จแล้วr</Text>
+            <Text style={styles.modalText}>คุณได้สร้างบัญชีสำเร็จแล้ว!</Text>
             <TouchableOpacity style={styles.modalButton} onPress={() => { setModalVisible(false); navigation.navigate("Login"); }}>
               <Text style={styles.modalButtonText}>Back to Login</Text>
             </TouchableOpacity>
