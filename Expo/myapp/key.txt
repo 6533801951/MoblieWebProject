@@ -12,3 +12,8 @@
     androidClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
     iosClientId: "16500471511-9ivse3lv6rrqs7941di5u3ppl0hvhk3p.apps.googleusercontent.com",
   });
+
+        <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync()}>
+        <FontAwesome name="google" size={20} color="#fff" />
+        <Text style={styles.buttonText}>Login with Google</Text>
+      </TouchableOpacity>
