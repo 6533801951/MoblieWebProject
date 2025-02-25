@@ -1,4 +1,4 @@
-const { Alert, Card, Button, Table, Form, Row, Col, Container} = ReactBootstrap;
+const { Alert, Card, Button, Table, Form, Row, Col, Container } = ReactBootstrap;
 
 const firebaseConfig = {
     apiKey: "AIzaSyDPfU2pqROLqgf5Fo4gekzY0-ycyG_3iI0",
@@ -14,17 +14,51 @@ const db = firebase.firestore();
 
 function LandingPage({ onLogin }) {
     return (
-        <div style={{ textAlign: "center", padding: "200px" }}>
-            <h2>ระบบจัดการห้องเรียนของอาจารย์</h2>
-            <p>กรุณาเข้าสู่ระบบเพื่อจัดการรายวิชา</p>
-            <Button variant="primary" onClick={onLogin}>
-                <img
-                    src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
-                    alt="Google Logo"
-                    width="20"
-                    height="20"
-                    style={{ marginRight: "8px" }}
-                />เข้าสู่ระบบด้วย Google</Button>
+        <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            backgroundColor: "#7fabf0"
+        }}>
+            <div style={{
+                background: "white",
+                padding: "40px",
+                borderRadius: "12px",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                textAlign: "center",
+                maxWidth: "400px"
+            }}>
+                <h2 style={{ color: "#333", marginBottom: "15px" }}>ระบบจัดการห้องเรียนของอาจารย์</h2>
+                <p style={{ color: "#666", marginBottom: "20px" }}>กรุณาเข้าสู่ระบบเพื่อจัดการรายวิชา</p>
+                <Button
+                    variant="light"
+                    onClick={onLogin}
+                    style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "1px solid #ddd",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        color: "#444",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = "#f0f0f0"}
+                    onMouseOut={(e) => e.target.style.backgroundColor = "white"}
+                >
+                    <img
+                        src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
+                        alt="Google Logo"
+                        width="24"
+                        height="24"
+                        style={{ marginRight: "10px" }}
+                    />
+                    เข้าสู่ระบบด้วย Google
+                </Button>
+            </div>
         </div>
     );
 }
@@ -290,7 +324,6 @@ function Attendance({ cid }) {
         </div>
     );
 }
-
 
 class App extends React.Component {
     state = {
