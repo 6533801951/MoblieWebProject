@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image } from "react-native";
 import { auth, db } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
@@ -39,7 +39,9 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📝 REGISTER</Text>
+      {/* ใช้รูปแทนไอคอน 📝 */}
+      <Image source={require("../assets/edit.png")} style={styles.iconImage} />
+      <Text style={styles.title}>REGISTER</Text>
 
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
       <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
@@ -70,13 +72,15 @@ export default function RegisterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1b2b4c", padding: 20 },
-    title: { fontSize: 30, fontWeight: "bold", color: "#ffffff", marginBottom: 30 },
-    input: { width: "85%", padding: 15, marginBottom: 15, borderRadius: 8, backgroundColor: "#e9f1fe", color: "#2c3e50", fontSize: 16 },
-    registerButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#2980b9", alignItems: "center", marginTop: 10 },
-    backToLogin: { marginTop: 15 },
-    backToLoginText: { color: "#ffffff", fontSize: 16, textDecorationLine: "underline" },
-    buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold" },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1b2b4c", padding: 20 },
+  iconImage: { width: 60, height: 60, marginBottom: 10 },
+  title: { fontSize: 30, fontWeight: "bold", color: "#ffffff", marginBottom: 30 },
+
+  input: { width: "85%", padding: 15, marginBottom: 15, borderRadius: 8, backgroundColor: "#e9f1fe", color: "#2c3e50", fontSize: 16 },
+  registerButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#2980b9", alignItems: "center", marginTop: 10 },
+  backToLogin: { marginTop: 15 },
+  backToLoginText: { color: "#ffffff", fontSize: 16, textDecorationLine: "underline" },
+  buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold" },
 
   modalBackground: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
   modalContainer: { width: "80%", padding: 25, borderRadius: 10, backgroundColor: "#1b2b4c", alignItems: "center" },

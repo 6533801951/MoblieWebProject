@@ -67,7 +67,7 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1b2b4c", padding: 20 },
-  iconImage: { width: 60, height: 60, marginBottom: 10 }, // เพิ่มสไตล์สำหรับรูปภาพ
+  iconImage: { width: 60, height: 60, marginBottom: 10 },
   title: { fontSize: 30, fontWeight: "bold", color: "#ffffff", marginBottom: 30 },
 
   inputContainer: { flexDirection: "row", alignItems: "center", width: "85%", padding: 15, marginBottom: 15, borderRadius: 8, backgroundColor: "#e9f1fe" },
