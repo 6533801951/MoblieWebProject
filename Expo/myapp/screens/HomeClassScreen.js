@@ -2,11 +2,13 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function HomeClassScreen({ navigation }) {
+export default function HomeClassScreen({ route, navigation }) {
+  const { subjectName } = route.params || { subjectName: "Class" }; // รับค่าชื่อวิชาหรือใช้ค่าเริ่มต้น
+
   return (
     <View style={styles.container}>
       <StatusBar hidden={false} />
-      <Text style={styles.headerTitle}>Welcome</Text>
+      <Text style={styles.headerTitle}>Welcome to {subjectName}</Text>
 
       <View style={styles.gridContainer}>
         <TouchableOpacity style={styles.card}>

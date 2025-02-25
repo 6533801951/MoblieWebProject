@@ -27,19 +27,19 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.cardSubtitle}>แสดงรายวิชาที่คุณลงทะเบียน</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { course: "C1" })}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { subjectName: "C1" })}>
           <Ionicons name="school-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>C1</Text>
           <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C1</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { course: "C2" })}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { subjectName: "C2" })}>
           <Ionicons name="school-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>C2</Text>
           <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C2</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { course: "C3" })}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HomeClassScreen", { subjectName: "C3" })}>
           <Ionicons name="school-outline" size={40} color="#ffffff" />
           <Text style={styles.cardTitle}>C3</Text>
           <Text style={styles.cardSubtitle}>รายละเอียดรายวิชา C3</Text>
