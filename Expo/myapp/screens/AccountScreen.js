@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
 
 const AccountScreen = () => {
   const [formData, setFormData] = useState({
@@ -8,66 +9,84 @@ const AccountScreen = () => {
     phone: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     console.log("Saved Data:", formData);
-    alert("ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
+    Alert.alert("สำเร็จ!", "ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">กรอกข้อมูลส่วนตัว</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleChange}
-          placeholder="ชื่อ"
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="text"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleChange}
-          placeholder="นามสกุล"
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="อีเมล"
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          placeholder="เบอร์โทรศัพท์"
-          className="w-full p-2 border rounded"
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
-          บันทึกข้อมูล
-        </button>
-      </form>
-    </div>
+    <View style={styles.container}>
+      <Text style={styles.title}>กรอกข้อมูลส่วนตัว</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="ชื่อ"
+        value={formData.firstName}
+        onChangeText={(text) => handleChange("firstName", text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="นามสกุล"
+        value={formData.lastName}
+        onChangeText={(text) => handleChange("lastName", text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="อีเมล"
+        keyboardType="email-address"
+        value={formData.email}
+        onChangeText={(text) => handleChange("email", text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="เบอร์โทรศัพท์"
+        keyboardType="phone-pad"
+        value={formData.phone}
+        onChangeText={(text) => handleChange("phone", text)}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>บันทึกข้อมูล</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    width: "100%",
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
+
 export default AccountScreen;
-//qqqqqqqqqqqqqqq
