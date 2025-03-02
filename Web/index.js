@@ -1,4 +1,4 @@
-const { Alert, Card, Button, Table, Form } = ReactBootstrap;
+const { Alert, Card, Button, Table, Form, Row, Col, Container } = ReactBootstrap;
 
 const firebaseConfig = {
     apiKey: "AIzaSyDPfU2pqROLqgf5Fo4gekzY0-ycyG_3iI0",
@@ -14,10 +14,51 @@ const db = firebase.firestore();
 
 function LandingPage({ onLogin }) {
     return (
-        <div style={{ textAlign: "center", padding: "200px" }}>
-            <h2>ระบบจัดการห้องเรียนของอาจารย์</h2>
-            <p>กรุณาเข้าสู่ระบบเพื่อจัดการรายวิชา</p>
-            <Button variant="primary" onClick={onLogin}>เข้าสู่ระบบด้วย Google</Button>
+        <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            backgroundColor: "#7fabf0"
+        }}>
+            <div style={{
+                background: "white",
+                padding: "40px",
+                borderRadius: "12px",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                textAlign: "center",
+                maxWidth: "400px"
+            }}>
+                <h2 style={{ color: "#333", marginBottom: "15px" }}>ระบบจัดการห้องเรียนของอาจารย์</h2>
+                <p style={{ color: "#666", marginBottom: "20px" }}>กรุณาเข้าสู่ระบบเพื่อจัดการรายวิชา</p>
+                <Button
+                    variant="light"
+                    onClick={onLogin}
+                    style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "1px solid #ddd",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        color: "#444",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = "#f0f0f0"}
+                    onMouseOut={(e) => e.target.style.backgroundColor = "white"}
+                >
+                    <img
+                        src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
+                        alt="Google Logo"
+                        width="24"
+                        height="24"
+                        style={{ marginRight: "10px" }}
+                    />
+                    เข้าสู่ระบบด้วย Google
+                </Button>
+            </div>
         </div>
     );
 }
@@ -89,39 +130,37 @@ function EditProfile({ user, app }) {
     );
 }
 
-function CoursesTable({ data, app }) {
+function AllCourses({ data, app }) {
+    console.log("Data received:", data);
     return (
-        <Table striped bordered hover>
-            <thead>
-                <tr>
-                    <th>รหัสวิชา</th>
-                    <th>ชื่อวิชา</th>
-                    <th>ภาพวิชา</th>
-                    <th>ห้องที่สอน</th>
-                    <th>จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
+        <Container>
+            <Row>
                 {data.length > 0 ? (
                     data.map((c) => (
-                        <tr key={c.id}>
-                            <td>{c.info.code}</td>
-                            <td>{c.info.name}</td>
-                            <td><img src={c.info.photo} alt="Subject" width="150" /></td>
-                            <td>{c.info.room}</td>
-                            <td>
-                                <Button variant="warning" onClick={() => app.manageCourse(c)}>จัดการ</Button>{' '}
-                                <Button variant="danger" onClick={() => app.delete(c)}>ลบ</Button>
-                            </td>
-                        </tr>
+                        <Col key={c.id} md={4} className="mb-4">
+                            <Card className="h-100 shadow-sm">
+                                <Card.Img variant="top" src={c.info.photo} alt="Subject" />
+                                <Card.Body>
+                                    <Card.Title>{c.info.name}</Card.Title>
+                                    <Card.Text>
+                                        <strong>รหัสวิชา:</strong> {c.info.code} <br />
+                                        <strong>ห้องเรียน:</strong> {c.info.room}
+                                    </Card.Text>
+                                </Card.Body>
+                                <Card.Footer className="text-center">
+                                    <Button variant="warning" onClick={() => app.manageCourse(c)} className="me-2">จัดการ</Button>
+                                    <Button variant="danger" onClick={() => app.delete(c)}>ลบ</Button>
+                                </Card.Footer>
+                            </Card>
+                        </Col>
                     ))
                 ) : (
-                    <tr>
-                        <td colSpan="5" className="text-center">ไม่มีข้อมูลรายวิชา</td>
-                    </tr>
+                    <Col className="text-center">
+                        <p>ไม่มีข้อมูลรายวิชา</p>
+                    </Col>
                 )}
-            </tbody>
-        </Table>
+            </Row>
+        </Container>
     );
 }
 function AddSubject({ user, app }) {
@@ -205,12 +244,23 @@ function ManagaCourse({ course, app }) {
 }
 function CourseDetails({ course }) {
     return (
-        <div>
-            <h5>รหัสวิชา: {course.info.code}</h5>
-            <h5>ชื่อวิชา: {course.info.name}</h5>
-            <h5>ห้องที่สอน: {course.info.room}</h5>
-            <img src={course.info.photo} alt="Subject Image" width="300" />
-        </div>
+        <Container className="mt-4">
+            <Row className="align-items-center">
+                <Col md={6}>
+                    <h5>รหัสวิชา: {course.info.code}</h5>
+                    <h5>ชื่อวิชา: {course.info.name}</h5>
+                    <h5>ห้องที่สอน: {course.info.room}</h5>
+                </Col>
+                <Col md={6} className="text-center">
+                    <img
+                        src={course.info.photo}
+                        alt="Subject Image"
+                        width="100%"
+                        style={{ maxWidth: "400px", borderRadius: "10px" }}
+                    />
+                </Col>
+            </Row>
+        </Container>
     );
 }
 function CourseQRCode({ cid }) {
@@ -261,20 +311,19 @@ function Attendance({ cid }) {
             <Button variant="success">เพิ่มการเช็คชื่อ</Button>
             <h5>ประวัติการเช็คชื่อ</h5>
             <Table striped bordered hover>
-            <thead>
-                <tr>
-                    <th>ลำดับ</th>
-                    <th>วัน-เวลา</th>
-                    <th>จำนวนคนเข้าเรียน</th>
-                    <th>สถานะ</th>
-                    <th>จัดการ</th>
-                </tr>
-            </thead>
-        </Table>
+                <thead>
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>วัน-เวลา</th>
+                        <th>จำนวนคนเข้าเรียน</th>
+                        <th>สถานะ</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+            </Table>
         </div>
     );
 }
-
 
 class App extends React.Component {
     state = {
@@ -307,8 +356,19 @@ class App extends React.Component {
             }
         });
     }
-    google_login = () => { firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); };
-    google_logout = () => { if (window.confirm("ต้องการออกจากระบบ?")) firebase.auth().signOut().then(() => this.setState({ user: null })); };
+    google_login = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" }); // บังคับเลือกบัญชีใหม่ทุกครั้ง
+        firebase.auth().signInWithPopup(provider);
+    };
+
+    google_logout = () => {
+        if (window.confirm("ต้องการออกจากระบบ?")) {
+            firebase.auth().signOut().then(() => {
+                this.setState({ user: null });
+            });
+        }
+    };
     readData = () => {
         if (!this.state.user) return;
         db.collection("classroom")
@@ -360,7 +420,7 @@ class App extends React.Component {
                     ) : this.state.scene === "manageCourse" ? (
                         <ManagaCourse course={this.state.currentCourse} app={this} />
                     ) : (
-                        <CoursesTable data={this.state.courses} app={this} />
+                        <AllCourses data={this.state.courses} app={this} />
                     )}
                 </Card.Body>
             </Card>

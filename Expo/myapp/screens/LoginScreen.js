@@ -1,38 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image } from "react-native";
 import { auth } from "../firebaseConfig";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import * as Google from "expo-auth-session/providers/google";
-import { makeRedirectUri } from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
-import { Ionicons, FontAwesome } from "@expo/vector-icons"; 
-
-WebBrowser.maybeCompleteAuthSession();
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { Ionicons } from "@expo/vector-icons"; 
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: "YOUR_WEB_CLIENT_ID",
-    androidClientId: "YOUR_ANDROID_CLIENT_ID",
-    iosClientId: "YOUR_IOS_CLIENT_ID",
-    redirectUri: makeRedirectUri({ useProxy: true }),
-  });
-
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .then(() => setModalVisible(true))
-        .catch(error => alert("❌ Google Login Error: " + error.message));
-    }
-  }, [response]);
-
   const handleLogin = () => {
-    // ✅ ตรวจสอบรหัสสำหรับทดสอบ
     if (email === "admin" && password === "123456") {
       setModalVisible(true);
       return;
@@ -45,7 +22,8 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🔒 LOGIN</Text>
+      <Image source={require("../assets/address-card.png")} style={styles.iconImage} />
+      <Text style={styles.title}>LOGIN</Text>
 
       <View style={styles.inputContainer}>
         <Ionicons name="mail" size={20} color="#2c3e50" style={styles.icon} />
@@ -59,11 +37,6 @@ export default function LoginScreen({ navigation }) {
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.buttonText}>LOGIN</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync()}>
-        <FontAwesome name="google" size={20} color="#fff" />
-        <Text style={styles.buttonText}>Login with Google</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.phoneButton} onPress={() => navigation.navigate("LoginPhoneScreen")}>
@@ -94,6 +67,7 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1b2b4c", padding: 20 },
+  iconImage: { width: 60, height: 60, marginBottom: 10 },
   title: { fontSize: 30, fontWeight: "bold", color: "#ffffff", marginBottom: 30 },
 
   inputContainer: { flexDirection: "row", alignItems: "center", width: "85%", padding: 15, marginBottom: 15, borderRadius: 8, backgroundColor: "#e9f1fe" },
@@ -101,7 +75,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, color: "#2c3e50", fontSize: 16 },
 
   loginButton: { width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#2980b9", alignItems: "center", marginTop: 10 },
-  googleButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#e74c3c", marginTop: 10 },
   phoneButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#16a085", marginTop: 10 },
   registerButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", width: "85%", padding: 15, borderRadius: 8, backgroundColor: "#f1c40f", marginTop: 10 },
   buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "bold", marginLeft: 10 },

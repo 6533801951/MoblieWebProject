@@ -1,6 +1,9 @@
 {
   "expo": {
     "name": "myapp",
+    "updates": {
+      "enabled": false
+    },
     "slug": "myapp",
     "scheme": "myapp",
     "version": "1.0.0",
