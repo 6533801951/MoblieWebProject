@@ -19,7 +19,7 @@ function LandingPage({ onLogin }) {
             justifyContent: "center",
             alignItems: "center",
             height: "100vh",
-            backgroundColor: "#7fabf0"
+            backgroundColor: "#8fd4f9"
         }}>
             <div style={{
                 background: "white",
@@ -209,8 +209,8 @@ async function addClassroom(uid, code, name, room, photoURL) {
         owner: uid,
         info: { code, name, room, photo: photoURL || "" }
     };
-    await db.collection("classroom").doc(cid).set(classroomData);
-    await db.collection("users").doc(uid).collection("classroom").doc(cid).set({ status: 1 });
+    await db.collection(`classroom`).doc(cid).set(classroomData);
+    await db.collection(`users/${uid}/classroom`).doc(cid).set({ status: 1 });
     return cid;
 }
 
@@ -229,14 +229,14 @@ function ManagaCourse({ course, app }) {
                     <a className={`nav-link ${tab === "details" ? "active" : ""}`} onClick={() => setTab("details")}>รายละเอียด</a>
                     <a className={`nav-link ${tab === "qrcode" ? "active" : ""}`} onClick={() => setTab("qrcode")}>QR Code</a>
                     <a className={`nav-link ${tab === "students" ? "active" : ""}`} onClick={() => setTab("students")}>นักเรียน</a>
-                    <a className={`nav-link ${tab === "attendance" ? "active" : ""}`} onClick={() => setTab("attendance")}>เช็คชื่อ</a>
+                    <a className={`nav-link ${tab === "CheckinList" ? "active" : ""}`} onClick={() => setTab("CheckinList")}>เช็คชื่อ</a>
                 </nav>
 
                 <div className="mt-3">
                     {tab === "details" && <CourseDetails course={course} />}
                     {tab === "qrcode" && <CourseQRCode cid={course.id} />}
                     {tab === "students" && <StudentList cid={course.id} />}
-                    {tab === "attendance" && <Attendance cid={course.id} />}
+                    {tab === "CheckinList" && <CheckinList cid={course.id} />}
                 </div>
             </Card.Body>
         </Card>
@@ -295,7 +295,7 @@ function StudentList({ cid }) {
                 {students.map((s, index) => (
                     <tr key={s.id}>
                         <td>{index + 1}</td>
-                        <td>{s.id}</td>
+                        <td>{s.stdid}</td>
                         <td>{s.name}</td>
                         <td><img src={s.photo} alt="Student" width="50" /></td>
                         <td>{s.status}</td>
@@ -305,26 +305,196 @@ function StudentList({ cid }) {
         </Table>
     );
 }
-function Attendance({ cid }) {
+function CheckinList({ cid }) {
+    const [tableData, setTableData] = React.useState([]);
+    const [showAddCheckinForm, setShowAddCheckinForm] = React.useState(false);
+
+    // ดึงข้อมูลการเช็คชื่อ
+    const fetchCheckinData = async () => {
+        const checkinSnapshot = await db.collection(`classroom/${cid}/checkin`).get();
+        const data = [];
+
+        for (const doc of checkinSnapshot.docs) {
+            const checkinData = doc.data();
+            const cno = parseInt(doc.id); // แปลง cno เป็นตัวเลข
+            const timestamp = checkinData.timestamp.toDate().toLocaleString();
+
+            // ดึงข้อมูลนักเรียนจาก collection students
+            const studentsSnapshot = await db.collection(`classroom/${cid}/checkin/${cno}/students`).get();
+            const totalStudents = studentsSnapshot.size;
+            const checkedInCount = studentsSnapshot.docs.filter(doc => doc.data().status === 1).length;
+            let status = 0;
+
+            if (checkedInCount > 0 && checkedInCount < totalStudents) {
+                status = 1;
+            } else if (checkedInCount === totalStudents) {
+                status = 2;
+            }
+
+            data.push({ cno, timestamp, totalStudents, status, code: checkinData.code, date: checkinData.date });
+        }
+
+        // เรียงลำดับข้อมูลตาม cno จากน้อยไปมาก
+        data.sort((a, b) => a.cno - b.cno);
+        setTableData(data);
+    };
+
+    React.useEffect(() => {
+        fetchCheckinData();
+    }, [cid]);
+
     return (
         <div>
-            <Button variant="success">เพิ่มการเช็คชื่อ</Button>
+            <Button variant="success" onClick={() => setShowAddCheckinForm(true)}>เพิ่มการเช็คชื่อ</Button>
+            {showAddCheckinForm && (
+                <AddCheckinForm
+                    cid={cid}
+                    fetchCheckinData={fetchCheckinData}
+                    onCancel={() => setShowAddCheckinForm(false)}
+                />
+            )}
+
             <h5>ประวัติการเช็คชื่อ</h5>
             <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th>ลำดับ</th>
-                        <th>วัน-เวลา</th>
+                        <th>รหัสเช็คชื่อ</th>
+                        <th>วันเวลาที่เรียน</th>
+                        <th>วัน-เวลาที่สร้าง</th>
                         <th>จำนวนคนเข้าเรียน</th>
                         <th>สถานะ</th>
                         <th>จัดการ</th>
                     </tr>
                 </thead>
+                <tbody>
+                    {tableData.map((c) => (
+                        <tr key={c.cno}>
+                            <td>{c.cno}</td>
+                            <td>{c.code}</td>
+                            <td>{c.date}</td>
+                            <td>{c.timestamp}</td>
+                            <td>{c.totalStudents}</td>
+                            <td>
+                                {c.status === 0 ? "ยังไม่เริ่ม" : 
+                                 c.status === 1 ? "กำลังเช็คชื่อ" : "เสร็จแล้ว"}
+                            </td>
+                            <td>
+                                <Button variant="info" onClick={() => viewCheckinDetails(cid, c.cno)}>ดูรายละเอียด</Button>{' '}
+                                <Button variant="danger" onClick={() => deleteCheckin(cid, c.cno, fetchCheckinData)}>ลบ</Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
             </Table>
         </div>
     );
 }
+function AddCheckinForm({ cid, fetchCheckinData, onCancel }) {
+    const [code, setCode] = React.useState(""); // รหัสเช็คชื่อ
+    const [date, setDate] = React.useState(""); // วันเวลาที่เรียน
 
+    const handleSave = async () => {
+        if (!code.trim() || !date.trim()) {
+            alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+            return;
+        }
+
+        try {
+            // ดึงข้อมูลการเช็คชื่อที่มีอยู่ทั้งหมด
+            const checkinSnapshot = await db.collection(`classroom/${cid}/checkin`).get();
+            const cno = checkinSnapshot.size + 1; // คำนวณ cno เป็น i + 1
+
+            // ดึงข้อมูลนักเรียนทั้งหมด
+            const studentsSnapshot = await db.collection(`classroom/${cid}/students`).get();
+
+            // สร้างข้อมูลการเช็คชื่อ
+            const checkinData = {
+                cno, // ลำดับการเช็คชื่อ (i + 1)
+                code, // รหัสเช็คชื่อ
+                date, // วันเวลาที่เรียน
+                timestamp: new Date(), // เวลาที่สร้างการเช็คชื่อ
+            };
+
+            // บันทึกข้อมูลการเช็คชื่อลงใน Firestore
+            await db.collection(`classroom/${cid}/checkin`).doc(cno.toString()).set(checkinData);
+
+            // สร้าง collection students สำหรับการเช็คชื่อนี้
+            const studentsCollectionRef = db.collection(`classroom/${cid}/checkin/${cno}/students`);
+
+            // เพิ่มข้อมูลนักเรียนลงใน collection students
+            studentsSnapshot.forEach(async (doc) => {
+                const studentData = doc.data();
+                await studentsCollectionRef.doc(doc.id).set({
+                    stdid: studentData.stdid, // รหัสนักเรียน
+                    name: studentData.name, // ชื่อนักเรียน
+                    status: 0 // 0 = ไม่ได้เช็คชื่อ, 1 = เช็คชื่อแล้ว
+                });
+            });
+
+            // อัปเดตข้อมูลการเช็คชื่อ
+            fetchCheckinData();
+
+            // ปิดฟอร์มหลังจากบันทึกสำเร็จ
+            onCancel();
+
+            alert("เพิ่มการเช็คชื่อสำเร็จ");
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการเพิ่มการเช็คชื่อ");
+        }
+    };
+
+    return (
+        <Card>
+            <Card.Header><h4>เพิ่มการเช็คชื่อ</h4></Card.Header>
+            <Card.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>รหัสเช็คชื่อ</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            placeholder="กรอกรหัสเช็คชื่อ เช่น ABC123"
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>วันเวลาที่เรียน</Form.Label>
+                        <Form.Control
+                            type="datetime-local"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Button variant="success" onClick={handleSave}>บันทึก</Button>{' '}
+                    <Button variant="secondary" onClick={onCancel}>ยกเลิก</Button>
+                </Form>
+            </Card.Body>
+        </Card>
+    );
+}
+async function viewCheckinDetails(cid, cno) {
+    const checkinDoc = await db.collection(`classroom/${cid}/checkin`).doc(cno.toString()).get();
+    const checkinData = checkinDoc.data();
+    console.log("รายละเอียดการเช็คชื่อ:", checkinData);
+}
+
+async function deleteCheckin(cid, cno, fetchCheckinData) {
+    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการเช็คชื่อนี้?")) {
+        await db.collection(`classroom/${cid}/checkin`).doc(cno.toString()).delete();
+        const studentsCollectionRef = db.collection(`classroom/${cid}/checkin/${cno}/students`);
+        const studentsSnapshot = await studentsCollectionRef.get();
+        studentsSnapshot.forEach(async (doc) => {
+            await doc.ref.delete();
+        });
+
+        // อัปเดตข้อมูลการเช็คชื่อ
+        fetchCheckinData();
+    }
+}
 class App extends React.Component {
     state = {
         scene: "dashboard",
@@ -360,12 +530,16 @@ class App extends React.Component {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" }); // บังคับเลือกบัญชีใหม่ทุกครั้ง
         firebase.auth().signInWithPopup(provider);
+        this.setState({ user });
     };
 
     google_logout = () => {
         if (window.confirm("ต้องการออกจากระบบ?")) {
             firebase.auth().signOut().then(() => {
                 this.setState({ user: null });
+                window.localStorage.removeItem("firebase:authUser");
+                window.sessionStorage.clear();
+                window.location.reload();
             });
         }
     };
@@ -402,28 +576,81 @@ class App extends React.Component {
     };
     render() {
         if (!this.state.user) return <LandingPage onLogin={this.google_login} />;
-        return (
-            <Card>
-                <Card.Header>
-                    <img src={this.state.user.photoURL} alt="Profile" width="50" className="rounded-circle" />{' '}
-                    {this.state.user.displayName} ({this.state.user.email}){' '}
-                    <Button variant="primary" onClick={() => this.setState({ scene: "addSubject" })}>เพิ่มวิชา</Button>{' '}
-                    <Button variant="secondary" onClick={() => this.setState({ scene: "editProfile" })}>แก้ไขโปรไฟล์</Button>{' '}
-                    <Button variant="danger" onClick={this.google_logout}>ออกจากระบบ</Button>
 
-                </Card.Header>
-                <Card.Body>
-                    {this.state.scene === "addSubject" ? (
-                        <AddSubject user={this.state.user} app={this} />
-                    ) : this.state.scene === "editProfile" ? (
-                        <EditProfile user={this.state.user} app={this} />
-                    ) : this.state.scene === "manageCourse" ? (
-                        <ManagaCourse course={this.state.currentCourse} app={this} />
-                    ) : (
-                        <AllCourses data={this.state.courses} app={this} />
-                    )}
-                </Card.Body>
-            </Card>
+        return (
+            <Container fluid className="vh-100">
+                <Row className="h-100">
+                    <Col md={3} className="sidebar py-4 px-3 text-white" style={{ backgroundColor: "#8fd4f9" }}>
+                        <div className="text-center mb-4 p-2 shadow rounded" style={{ backgroundColor: "white", color: "black" }}>
+                            <img src={this.state.user.photoURL} alt="Profile" width="90" className="rounded-circle mb-2" />
+                            <h5 className="fw-bold">{this.state.user.displayName}</h5>
+                            <p>{this.state.user.email}</p>
+                        </div>
+                        <nav className="d-flex flex-column">
+                            <div
+                                className="menu-item py-3 px-4 text-white fw-bold"
+                                style={{
+                                    cursor: "pointer",
+                                    backgroundColor: "#3498db",
+                                    borderRadius: "10px",
+                                    marginBottom: "10px",
+                                    transition: "background-color 0.3s ease"
+                                }}
+                                onClick={() => this.setState({ scene: "addSubject" })}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = "#2980b9"}  // เปลี่ยนสีเมื่อ hover
+                                onMouseLeave={(e) => e.target.style.backgroundColor = "#3498db"}  // กลับเป็นสีเดิม
+                            >
+                                ➕ เพิ่มวิชา
+                            </div>
+                            <div
+                                className="menu-item py-3 px-4 text-white fw-bold"
+                                style={{
+                                    cursor: "pointer",
+                                    backgroundColor: "#2980b9",
+                                    borderRadius: "10px",
+                                    marginBottom: "10px",
+                                    transition: "background-color 0.3s ease"
+                                }}
+                                onClick={() => this.setState({ scene: "editProfile" })}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = "#1f6690"}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = "#2980b9"}
+                            >
+                                ✏️ แก้ไขโปรไฟล์
+                            </div>
+                            <div
+                                className="menu-item py-3 px-4 text-white fw-bold"
+                                style={{
+                                    cursor: "pointer",
+                                    backgroundColor: "#e74c3c",
+                                    borderRadius: "10px",
+                                    transition: "background-color 0.3s ease"
+                                }}
+                                onClick={this.google_logout}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = "#c0392b"}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = "#e74c3c"}
+                            >
+                                🚪 ออกจากระบบ
+                            </div>
+                        </nav>
+                    </Col>
+
+                    <Col md={9} className="p-4">
+                        <Card className="w-100">
+                            <Card.Body>
+                                {this.state.scene === "addSubject" ? (
+                                    <AddSubject user={this.state.user} app={this} />
+                                ) : this.state.scene === "editProfile" ? (
+                                    <EditProfile user={this.state.user} app={this} />
+                                ) : this.state.scene === "manageCourse" ? (
+                                    <ManagaCourse course={this.state.currentCourse} app={this} />
+                                ) : (
+                                    <AllCourses data={this.state.courses} app={this} />
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
         );
     }
 }
