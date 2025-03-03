@@ -298,7 +298,17 @@ function StudentList({ cid }) {
                         <td>{s.stdid}</td>
                         <td>{s.name}</td>
                         <td><img src={s.photo} alt="Student" width="50" /></td>
-                        <td>{s.status}</td>
+                        <td>
+                            {(() => {
+                                if (s.status === 0) {
+                                    return "ยังไม่ตรวจสอบ";
+                                } else if (s.status === 1) {
+                                    return "ตรวจสอบแล้ว";
+                                } else {
+                                    return "ไม่ทราบสถานะ"; // กรณีมีค่าอื่นที่ไม่ใช่ 0 หรือ 1
+                                }
+                            })()}
+                        </td>
                     </tr>
                 ))}
             </tbody>
@@ -308,40 +318,42 @@ function StudentList({ cid }) {
 function CheckinList({ cid }) {
     const [tableData, setTableData] = React.useState([]);
     const [showAddCheckinForm, setShowAddCheckinForm] = React.useState(false);
+    const [manageCheckinCno, setManageCheckinCno] = React.useState(null); // cno ที่กำลังจัดการ
 
-    // ดึงข้อมูลการเช็คชื่อ
-    const fetchCheckinData = async () => {
-        const checkinSnapshot = await db.collection(`classroom/${cid}/checkin`).get();
-        const data = [];
+    // ดึงข้อมูลการเช็คชื่อแบบ Real-time
+    React.useEffect(() => {
+        const checkinRef = db.collection(`classroom/${cid}/checkin`);
+        const unsubscribe = checkinRef.onSnapshot(async (snapshot) => {
+            const data = [];
 
-        for (const doc of checkinSnapshot.docs) {
-            const checkinData = doc.data();
-            const cno = parseInt(doc.id); // แปลง cno เป็นตัวเลข
-            const timestamp = checkinData.timestamp.toDate().toLocaleString();
+            for (const doc of snapshot.docs) {
+                const checkinData = doc.data();
+                const cno = parseInt(doc.id);
 
-            // ดึงข้อมูลนักเรียนจาก collection students
-            const studentsSnapshot = await db.collection(`classroom/${cid}/checkin/${cno}/students`).get();
-            const totalStudents = studentsSnapshot.size;
-            const checkedInCount = studentsSnapshot.docs.filter(doc => doc.data().status === 1).length;
-            let status = 0;
+                // ดึงข้อมูลนักเรียนจาก collection students
+                const studentsSnapshot = await db.collection(`classroom/${cid}/checkin/${cno}/students`).get();
+                const totalStudents = studentsSnapshot.size;
+                const checkedInCount = studentsSnapshot.docs.filter(doc => doc.data().status === 1).length;
+                let status = checkinData.status || 0; // ใช้ status จากเอกสารการเช็คชื่อ
 
-            if (checkedInCount > 0 && checkedInCount < totalStudents) {
-                status = 1;
-            } else if (checkedInCount === totalStudents) {
-                status = 2;
+                data.push({ cno, totalStudents, status, code: checkinData.code, date: checkinData.date });
             }
 
-            data.push({ cno, timestamp, totalStudents, status, code: checkinData.code, date: checkinData.date });
-        }
+            // เรียงลำดับข้อมูลตาม cno จากน้อยไปมาก
+            data.sort((a, b) => a.cno - b.cno);
+            setTableData(data);
+        });
 
-        // เรียงลำดับข้อมูลตาม cno จากน้อยไปมาก
-        data.sort((a, b) => a.cno - b.cno);
-        setTableData(data);
-    };
-
-    React.useEffect(() => {
-        fetchCheckinData();
+        // Cleanup function
+        return () => unsubscribe();
     }, [cid]);
+
+    // เปลี่ยน status เป็น 1 เมื่อกดแก้ไข
+    const handleManageCheckin = async (cid, cno) => {
+        const checkinRef = db.collection(`classroom/${cid}/checkin`).doc(cno.toString());
+        await checkinRef.update({ status: 1 }); // เปลี่ยน status เป็น 1
+        setManageCheckinCno(cno); // เปิดหน้าจัดการ
+    };
 
     return (
         <div>
@@ -349,8 +361,16 @@ function CheckinList({ cid }) {
             {showAddCheckinForm && (
                 <AddCheckinForm
                     cid={cid}
-                    fetchCheckinData={fetchCheckinData}
+                    fetchCheckinData={() => { }} // ไม่จำเป็นเพราะใช้ Real-time
                     onCancel={() => setShowAddCheckinForm(false)}
+                />
+            )}
+
+            {manageCheckinCno !== null && (
+                <ManageCheckin
+                    cid={cid}
+                    cno={manageCheckinCno}
+                    onClose={() => setManageCheckinCno(null)}
                 />
             )}
 
@@ -359,9 +379,7 @@ function CheckinList({ cid }) {
                 <thead>
                     <tr>
                         <th>ลำดับ</th>
-                        <th>รหัสเช็คชื่อ</th>
                         <th>วันเวลาที่เรียน</th>
-                        <th>วัน-เวลาที่สร้าง</th>
                         <th>จำนวนคนเข้าเรียน</th>
                         <th>สถานะ</th>
                         <th>จัดการ</th>
@@ -371,17 +389,24 @@ function CheckinList({ cid }) {
                     {tableData.map((c) => (
                         <tr key={c.cno}>
                             <td>{c.cno}</td>
-                            <td>{c.code}</td>
                             <td>{c.date}</td>
-                            <td>{c.timestamp}</td>
                             <td>{c.totalStudents}</td>
                             <td>
-                                {c.status === 0 ? "ยังไม่เริ่ม" : 
-                                 c.status === 1 ? "กำลังเช็คชื่อ" : "เสร็จแล้ว"}
+                                {(() => {
+                                    if (c.status === 0) {
+                                        return "ยังไม่เริ่ม";
+                                    } else if (c.status === 1) {
+                                        return "กำลังเช็คชื่อ";
+                                    } else if (c.status === 2) {
+                                        return "เสร็จแล้ว";
+                                    } else {
+                                        return "ไม่ทราบสถานะ"; // กรณีมีค่าอื่นที่ไม่ใช่ 0, 1, หรือ 2
+                                    }
+                                })()}
                             </td>
                             <td>
-                                <Button variant="info" onClick={() => viewCheckinDetails(cid, c.cno)}>ดูรายละเอียด</Button>{' '}
-                                <Button variant="danger" onClick={() => deleteCheckin(cid, c.cno, fetchCheckinData)}>ลบ</Button>
+                                <Button variant="info" onClick={() => handleManageCheckin(cid, c.cno)}>เช็คชื่อ</Button>{' '}
+                                <Button variant="danger" onClick={() => deleteCheckin(cid, c.cno)}>ลบ</Button>
                             </td>
                         </tr>
                     ))}
@@ -414,6 +439,7 @@ function AddCheckinForm({ cid, fetchCheckinData, onCancel }) {
                 code, // รหัสเช็คชื่อ
                 date, // วันเวลาที่เรียน
                 timestamp: new Date(), // เวลาที่สร้างการเช็คชื่อ
+                status: 0
             };
 
             // บันทึกข้อมูลการเช็คชื่อลงใน Firestore
@@ -476,12 +502,341 @@ function AddCheckinForm({ cid, fetchCheckinData, onCancel }) {
         </Card>
     );
 }
-async function viewCheckinDetails(cid, cno) {
-    const checkinDoc = await db.collection(`classroom/${cid}/checkin`).doc(cno.toString()).get();
-    const checkinData = checkinDoc.data();
-    console.log("รายละเอียดการเช็คชื่อ:", checkinData);
-}
+function ManageCheckin({ cid, cno, onClose }) {
+    const [students, setStudents] = React.useState([]); // ข้อมูลนักเรียน
+    const [isLoading, setIsLoading] = React.useState(true); // สถานะการโหลด
+    const [code, setCode] = React.useState(""); // รหัสเช็คชื่อ
+    const [tab, setTab] = React.useState("checkin"); // Tab ที่เลือก
+    const [showQuestionForm, setShowQuestionForm] = React.useState(false); // แสดงฟอร์มตั้งคำถาม
 
+    // ดึงข้อมูลนักเรียนแบบ Real-time
+    React.useEffect(() => {
+        const studentsRef = db.collection(`classroom/${cid}/checkin/${cno}/students`);
+        const unsubscribeStudents = studentsRef.onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setStudents(data);
+            setIsLoading(false);
+        });
+
+        // ดึงข้อมูล code จากเอกสารการเช็คชื่อ
+        const checkinRef = db.collection(`classroom/${cid}/checkin`).doc(cno.toString());
+        const unsubscribeCheckin = checkinRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                setCode(doc.data().code || ""); // ตั้งค่า code จากเอกสาร
+            }
+        });
+
+        // Cleanup function
+        return () => {
+            unsubscribeStudents();
+            unsubscribeCheckin();
+        };
+    }, [cid, cno]);
+    const handleDeleteStudent = async (studentId) => {
+        if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบนักเรียนนี้?")) {
+            await db.collection(`classroom/${cid}/checkin/${cno}/students`).doc(studentId).delete();
+        }
+    };
+    const handleSaveCheckinStatus = async () => {
+        try {
+            // ส่งข้อมูลนักเรียนไปยัง /classroom/{cid}/checkin/{cno}/scores
+            const scoresRef = db.collection(`classroom/${cid}/checkin/${cno}/scores`);
+            const batch = db.batch();
+
+            students.forEach((student) => {
+                const scoreDocRef = scoresRef.doc(student.id);
+                batch.set(scoreDocRef, {
+                    stdid: student.stdid,
+                    name: student.name,
+                    remark: student.remark || "", // หมายเหตุ (ถ้ามี)
+                    date: student.date || "", // วันเวลา (ถ้ามี)
+                    status: 1,
+                });
+            });
+
+            await batch.commit();
+
+            // อัปเดต status ใน /classroom/{cid}/checkin/{cno}
+            const checkinRef = db.collection(`classroom/${cid}/checkin`).doc(cno.toString());
+            await checkinRef.update({ status: 2 }); // เปลี่ยน status เป็น 2
+
+            alert("บันทึกข้อมูลสำเร็จ");
+            onClose(); // ปิดหน้าจัดการ
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        }
+    };
+
+
+    const handleSaveStudents = async () => {
+        try {
+            const scoresRef = db.collection(`classroom/${cid}/checkin/${cno}/scores`);
+            const batch = db.batch();
+    
+            students.forEach((student) => {
+                const scoreDocRef = scoresRef.doc(student.id);
+                batch.set(scoreDocRef, {
+                    stdid: student.stdid,
+                    name: student.name,
+                    remark: student.remark || "",
+                    score: student.score || 0,
+                    status: student.status || 0,
+                }, { merge: true }); // ใช้ merge เพื่อไม่ทับข้อมูลเดิม
+            });
+    
+            await batch.commit();
+            alert("บันทึกข้อมูลสำเร็จ");
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        }
+    };
+    const handleChange = (id, field, value) => {
+        setStudents((prevStudents) =>
+            prevStudents.map((student) =>
+                student.id === id ? { ...student, [field]: field === "score" ? parseFloat(value || 0) : value } : student
+            )
+        );
+    };
+    return (
+        <Card>
+            <Card.Header>
+                <h4>จัดการการเช็คชื่อ: ลำดับเช็คชื่อ : {cno} | โค้ดเช็คชื่อ : {code}</h4>
+                <div className="d-flex justify-content-between align-items-center">
+                    <Button variant="secondary" onClick={onClose}>ย้อนกลับ</Button>
+                    <Button variant="primary" onClick={() => setShowQuestionForm(true)}> + สร้างคำถาม</Button>
+                </div>
+                <nav className="nav nav-tabs">
+                    <a className={`nav-link ${tab === "checkin" ? "active" : ""}`} onClick={() => setTab("checkin")}>เช็คชื่อ</a>
+                    <a className={`nav-link ${tab === "scores" ? "active" : ""}`} onClick={() => setTab("scores")}>แสดงคะแนน</a>
+                </nav>
+            </Card.Header>
+            <Card.Body>
+                {isLoading ? (
+                    <p>กำลังโหลดข้อมูล...</p>
+                ) : (
+                    <>
+                        {tab === "checkin" && (
+                            <>
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>รหัส</th>
+                                            <th>ชื่อ</th>
+                                            <th>หมายเหตุ</th>
+                                            <th>วันเวลา</th>
+                                            <th>จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {students.map((student, index) => (
+                                            <tr key={student.id}>
+                                                <td>{index + 1}</td>
+                                                <td>{student.stdid}</td>
+                                                <td>{student.name}</td>
+                                                <td>{student.remark}</td>
+                                                <td>{student.date}</td>
+                                                <td>
+                                                    <Button variant="danger" onClick={() => handleDeleteStudent(student.id)}>ลบ</Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                                <Button variant="success" onClick={handleSaveCheckinStatus}>
+                                    บันทึกการเช็คชื่อ
+                                </Button>
+                            </>
+                        )}
+    
+                        {tab === "scores" && (
+                            <>
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>รหัส</th>
+                                            <th>ชื่อ</th>
+                                            <th>หมายเหตุ</th>
+                                            <th>วันเวลา</th>
+                                            <th>คะแนน</th>
+                                            <th>สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {students.map((student, index) => (
+                                            <tr key={student.id}>
+                                                <td>{index + 1}</td>
+                                                <td>{student.stdid}</td>
+                                                <td>{student.name}</td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        value={student.remark || ""}
+                                                        onChange={(e) => handleChange(student.id, "remark", e.target.value)}
+                                                    />
+                                                </td>
+                                                <td>{student.timestamp || ""}</td>
+                                                <td>
+                                                    <input
+                                                        type="number"
+                                                        value={student.score || 0}
+                                                        onChange={(e) => handleChange(student.id, "score", e.target.value)}
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <select
+                                                        value={student.status || 0}
+                                                        onChange={(e) => handleChange(student.id, "status", parseInt(e.target.value))}
+                                                    >
+                                                        <option value={0}>ไม่มา</option>
+                                                        <option value={1}>มาเรียน</option>
+                                                        <option value={2}>มาสาย</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                                <Button variant="success" onClick={handleSaveStudents}>บันทึกข้อมูล</Button>
+                            </>
+                        )}
+    
+                        {showQuestionForm && (
+                            <QuestionForm
+                                cid={cid}
+                                cno={cno}
+                                onCancel={() => setShowQuestionForm(false)}
+                            />
+                        )}
+                    </>
+                )}
+            </Card.Body>
+        </Card>
+    );
+}
+function QuestionForm({ cid, cno, onCancel }) {
+    const [questionNo, setQuestionNo] = React.useState(""); // ข้อที่
+    const [questionText, setQuestionText] = React.useState(""); // ข้อความคำถาม
+    const [answers, setAnswers] = React.useState([]); // คำตอบของนักเรียน
+
+    // ดึงข้อมูลคำตอบแบบ Realtime
+    React.useEffect(() => {
+        if (!questionNo) return; // ถ้าไม่มี questionNo ไม่ต้องดึงข้อมูล
+
+        const answersRef = db.collection(`classroom/${cid}/checkin/${cno}/answers/${questionNo}/students`);
+        const unsubscribe = answersRef.onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                id: doc.id, // รหัสนักเรียน (stdid)
+                ...doc.data(), // ข้อมูลคำตอบและเวลาส่ง
+            }));
+            setAnswers(data);
+        });
+
+        return () => unsubscribe();
+    }, [cid, cno, questionNo]); // ดึงข้อมูลใหม่เมื่อ questionNo เปลี่ยนแปลง
+
+    // บันทึกคำถาม
+    const handleSaveQuestion = async () => {
+        if (!questionNo || !questionText) {
+            alert("กรุณากรอกข้อที่และข้อความคำถาม");
+            return;
+        }
+
+        try {
+            // บันทึกคำถามลงใน Firestore
+            await db.collection(`classroom/${cid}/checkin/${cno}/question`).doc(questionNo).set({
+                question_no: questionNo,
+                question_text: questionText,
+                question_show: true,
+            });
+            await db.collection(`classroom/${cid}/checkin/${cno}/answers`).doc(questionNo).set({
+                question_text: questionText,
+            });
+
+            alert("บันทึกคำถามสำเร็จ");
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการบันทึกคำถาม");
+        }
+    };
+
+    // ปิดคำถาม
+    const handleCloseQuestion = async () => {
+        try {
+            await db.collection(`classroom/${cid}/checkin/${cno}/question`).doc(questionNo).update({
+                question_show: false,
+            });
+
+            alert("ปิดคำถามสำเร็จ");
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาดในการปิดคำถาม");
+        }
+    };
+
+    return (
+        <Card className="mt-3">
+            <Card.Header><h4>ตั้งคำถาม</h4></Card.Header>
+            <Card.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>ข้อที่</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={questionNo}
+                            onChange={(e) => setQuestionNo(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>ข้อความคำถาม</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={questionText}
+                            onChange={(e) => setQuestionText(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Button variant="success" onClick={handleSaveQuestion}>บันทึกคำถาม</Button>{' '}
+                    <Button variant="danger" onClick={handleCloseQuestion}>ปิดคำถาม</Button>{' '}
+                    <Button variant="secondary" onClick={onCancel}>ยกเลิก</Button>
+                </Form>
+            </Card.Body>
+
+            {/* แสดงคำตอบของนักเรียน */}
+            <Card.Body>
+                <h5>คำตอบของนักเรียน</h5>
+                <Table striped bordered hover>
+                    <thead>
+                        <tr>
+                            <th>ลำดับ</th>
+                            <th>รหัสนักเรียน</th>
+                            <th>คำตอบ</th>
+                            <th>เวลาส่งคำตอบ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {answers.map((answer, index) => (
+                            <tr key={answer.id}>
+                                <td>{index + 1}</td>
+                                <td>{answer.id}</td> {/* รหัสนักเรียน (stdid) */}
+                                <td>{answer.text}</td> {/* คำตอบของนักเรียน */}
+                                <td>{answer.time}</td> {/* เวลาส่งคำตอบ */}
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+            </Card.Body>
+        </Card>
+    );
+}
 async function deleteCheckin(cid, cno, fetchCheckinData) {
     if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการเช็คชื่อนี้?")) {
         await db.collection(`classroom/${cid}/checkin`).doc(cno.toString()).delete();
@@ -495,6 +850,7 @@ async function deleteCheckin(cid, cno, fetchCheckinData) {
         fetchCheckinData();
     }
 }
+
 class App extends React.Component {
     state = {
         scene: "dashboard",
