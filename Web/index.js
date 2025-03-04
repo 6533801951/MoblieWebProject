@@ -302,8 +302,6 @@ function StudentList({ cid }) {
                     <th>ลำดับ</th>
                     <th>รหัส</th>
                     <th>ชื่อ</th>
-                    <th>รูปภาพ</th>
-                    <th>สถานะ</th>
                 </tr>
             </thead>
             <tbody>
@@ -312,18 +310,6 @@ function StudentList({ cid }) {
                         <td>{index + 1}</td>
                         <td>{student.stdid}</td>
                         <td>{student.name}</td>
-                        <td><img src={student.photo} alt="Student" width="50" /></td>
-                        <td>
-                            {(() => {
-                                if (student.status === 0) {
-                                    return "ยังไม่ตรวจสอบ";
-                                } else if (student.status === 1) {
-                                    return "ตรวจสอบแล้ว";
-                                } else {
-                                    return "ไม่ทราบสถานะ";
-                                }
-                            })()}
-                        </td>
                     </tr>
                 ))}
             </tbody>
