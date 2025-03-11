@@ -555,7 +555,8 @@ function ManageCheckin({ cid, cno, onClose }) {
                     name: student.name,
                     remark: student.remark || "",
                     score: student.score || 0,
-                    status: student.status || 0,
+                    date: student.date,
+                    status: student.status || 1,
                 }, { merge: true });
             });
 
@@ -652,7 +653,7 @@ function ManageCheckin({ cid, cno, onClose }) {
                                                         onChange={(e) => handleChange(student.id, "remark", e.target.value)}
                                                     />
                                                 </td>
-                                                <td>{student.timestamp || ""}</td>
+                                                <td>{student.date}</td>
                                                 <td>
                                                     <input
                                                         type="number"
@@ -662,7 +663,7 @@ function ManageCheckin({ cid, cno, onClose }) {
                                                 </td>
                                                 <td>
                                                     <select
-                                                        value={student.status || 0}
+                                                        value={student.status || 1}
                                                         onChange={(e) => handleChange(student.id, "status", parseInt(e.target.value))}
                                                     >
                                                         <option value={0}>ไม่มา</option>
