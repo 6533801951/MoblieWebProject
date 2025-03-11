@@ -6,6 +6,7 @@ import {
 import { db } from "./firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { auth } from "./firebaseConfig"; // ✅ เพิ่ม auth เพื่อนำ uid ของผู้ใช้ปัจจุบันมาใช้
 
 export default function Quiz() {
     const navigation = useNavigation();
@@ -13,8 +14,9 @@ export default function Quiz() {
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
     const [questionShow, setQuestionShow] = useState(false);
-    const studentId = "653380195-1";
+    const [studentId, setStudentId] = useState("Unknown"); // ✅ ค่าเริ่มต้นเป็น Unknown
     const cid = route.params?.cid || null;
+    const user = auth.currentUser;
 
     useEffect(() => {
         if (!cid) {
@@ -23,9 +25,30 @@ export default function Quiz() {
             return;
         }
 
+        // ✅ ดึงค่า studentId จาก /users/{uid}/stdid
+        const fetchStudentId = async () => {
+            if (!user) return;
+
+            try {
+                const userRef = doc(db, `users/${user.uid}`);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    setStudentId(data.stdid || "Unknown");
+                } else {
+                    setStudentId("Unknown");
+                }
+            } catch (error) {
+                console.error("Error fetching student ID:", error);
+                setStudentId("Unknown");
+            }
+        };
+
+        // ✅ ดึงคำถามจาก /classroom/{cid}/checkin/1/question/1
         const fetchQuestion = async () => {
             try {
-                const questionRef = doc(db, `classroom/${cid}/checkin/1`);
+                const questionRef = doc(db, `classroom/${cid}/checkin/1/question/1`);
                 const questionSnap = await getDoc(questionRef);
 
                 if (questionSnap.exists()) {
@@ -33,7 +56,7 @@ export default function Quiz() {
                     setQuestion(data.question_text || "ไม่มีคำถาม");
                     setQuestionShow(data.question_show === true);
                 } else {
-                    Alert.alert("Error", `ปัจจุบันยังไม่มีคำถาม ${cid}`);
+                    Alert.alert("Error", `ปัจจุบันยังไม่มีคำถามของวิชา ${cid}`);
                 }
             } catch (error) {
                 console.error("Error fetching question:", error);
@@ -41,8 +64,9 @@ export default function Quiz() {
             }
         };
 
-        fetchQuestion();
-    }, [cid]);
+        fetchStudentId(); // ✅ โหลด studentId ก่อน
+        fetchQuestion();  // ✅ โหลดคำถามหลังจากนั้น
+    }, [cid, user]); // ✅ โหลดใหม่เมื่อ `cid` หรือ `user` เปลี่ยนแปลง
 
     const handleSubmitAnswer = async () => {
         if (!answer.trim()) {
