@@ -6,7 +6,7 @@
 ลิ้งค์สำหรับเข้า Website จัดการของอาจารย์ : [กดเข้าลิ้งนี้เลย](https://6533801951.github.io/MoblieWebProject/Web/index.html)
 
 
-ลิ้งค์สำหรับเข้า Expo ของนักศึกษา : [กดเข้าลิ้งนี้เลย](https://expo.dev/preview/update?message=update%208&updateRuntimeVersion=1.0.0&createdAt=2025-03-11T04%3A08%3A51.098Z&slug=exp&projectId=797a140e-9451-4f3c-a231-1d67fea5e0e0&group=75415841-0819-4d4b-b00c-9d16483cb528)
+ลิ้งค์สำหรับเข้า Expo ของนักศึกษา : [กดเข้าลิ้งนี้เลย](https://expo.dev/preview/update?message=update%20final&updateRuntimeVersion=1.0.0&createdAt=2025-03-11T04%3A28%3A00.852Z&slug=exp&projectId=797a140e-9451-4f3c-a231-1d67fea5e0e0&group=9bc3de04-725d-418e-b65e-6823b5f0b453)
 
 ## เป้าหมายการพัฒนา
 - เว็บไซต์สำหรับอาจารย์เพื่อจัดการรายวิชาที่สอน แสดงรายชื่อนักศึกษาที่เข้าเรียน และ ตรวจสอบการเช็คชื่อ
