@@ -651,14 +651,16 @@ function ManageCheckin({ cid, cno, onClose }) {
                                                         type="text"
                                                         value={student.remark || ""}
                                                         onChange={(e) => handleChange(student.id, "remark", e.target.value)}
+                                                        style={{ width: "150px" }}
                                                     />
                                                 </td>
-                                                <td>{student.date}</td>
+                                                <td style={{ width: "200px"}}>{student.date}</td>
                                                 <td>
                                                     <input
                                                         type="number"
                                                         value={student.score || 0}
                                                         onChange={(e) => handleChange(student.id, "score", e.target.value)}
+                                                        style={{ width: "80px" }}
                                                     />
                                                 </td>
                                                 <td>
